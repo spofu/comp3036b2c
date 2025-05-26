@@ -1,0 +1,132 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id             String    @id @default(uuid())
+  email          String    @unique
+  hashedPassword String // Renamed for clarity
+  name           String // Made non-nullable (if required)
+  role           Role      @default(CUSTOMER)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  orders         Order[]
+  reviews        Review[]
+  addresses      Address[]
+
+  @@index([email])
+}
+
+enum Role {
+  CUSTOMER
+  ADMIN
+}
+
+model Product {
+  id          String   @id @default(uuid())
+  name        String
+  description String
+  price       Decimal @db.Decimal(10, 2)// Changed to Decimal for precision
+  stock       Int
+  imageUrl    String   // Made non-nullable (if required)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  categoryId  String
+  category    Category @relation(fields: [categoryId], references: [id])
+  reviews     Review[]
+  orderItems  OrderItem[]
+
+  @@index([categoryId])
+}
+
+model Category {
+  id        String    @id @default(uuid())
+  name      String    @unique
+  products  Product[]
+  updatedAt DateTime  @updatedAt // Added
+}
+
+model Order {
+  id        String      @id @default(uuid())
+  userId    String
+  user      User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  total     Decimal     // Changed to Decimal
+  status    OrderStatus @default(PENDING)
+  createdAt DateTime    @default(now())
+  items     OrderItem[]
+  addressId String
+  address   Address     @relation(fields: [addressId], references: [id])
+
+  @@index([userId])
+  @@index([status])
+}
+
+enum OrderStatus {
+  PENDING
+  PAID
+  SHIPPED
+  DELIVERED
+  CANCELLED
+}
+
+model OrderItem {
+  id        String  @id @default(uuid())
+  orderId   String
+  productId String
+  quantity  Int
+  price     Decimal // Changed to Decimal
+  order     Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product   Product @relation(fields: [productId], references: [id], onDelete: Restrict)
+
+  @@index([orderId])
+  @@index([productId])
+  @@unique([orderId, productId]) // Prevent duplicate products in an order
+}
+
+model Review {
+  id        String   @id @default(uuid())
+  userId    String
+  productId String
+  rating    Int // Consider adding application-level validation (e.g., 1–5)
+  comment   String?  @default("") // Added default
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, productId])
+  @@index([productId])
+}
+
+model Address {
+  id        String   @id @default(uuid())
+  userId    String
+  street    String
+  apartment String?  // Added for flexibility
+  city      String
+  state     String
+  zipCode   String
+  country   String
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  orders    Order[]
+
+  @@index([userId])
+}
+
