@@ -83,6 +83,9 @@
 
 .cart-wrapper {
   position: relative;
+  display: flex;
+  align-items: center;
+  text-decoration: none;
 }
 
 .cart-image {
@@ -91,6 +94,39 @@
 
 .cart-image:hover {
   opacity: 0.8;
+}
+
+.cart-count {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  background-color: #ef4444;
+  color: white;
+  font-size: 0.75rem;
+  font-weight: bold;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  animation: bounce 0.3s ease;
+}
+
+@keyframes bounce {
+  0%,
+  20%,
+  60%,
+  100% {
+    transform: translateY(0);
+  }
+  40% {
+    transform: translateY(-3px);
+  }
+  80% {
+    transform: translateY(-1px);
+  }
 }
 
 .auth-buttons {
@@ -166,7 +202,7 @@
   .auth-buttons {
     gap: 8px;
   }
-  
+
   .login-button,
   .signup-button,
   .logout-button {

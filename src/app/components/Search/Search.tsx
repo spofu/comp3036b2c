@@ -26,50 +26,6 @@ export const Search = ({ placeholder = "Search for products...", maxResults = 5 
   const [isOpen, setIsOpen] = useState(false)
   const searchRef = useRef<HTMLDivElement>(null)
 
-  // Mock data - replace with actual API call
-  const mockProducts: SearchResult[] = [
-    {
-      id: '1',
-      name: 'Classic White T-Shirt',
-      category: 'Mens',
-      price: 29.99,
-      imageUrl: '/placeholder-tshirt.jpg',
-      description: 'Comfortable cotton t-shirt'
-    },
-    {
-      id: '2',
-      name: 'Blue Denim Jeans',
-      category: 'Mens',
-      price: 79.99,
-      imageUrl: '/placeholder-jeans.jpg',
-      description: 'Premium denim jeans'
-    },
-    {
-      id: '3',
-      name: 'Summer Dress',
-      category: 'Womens',
-      price: 89.99,
-      imageUrl: '/placeholder-dress.jpg',
-      description: 'Elegant summer dress'
-    },
-    {
-      id: '4',
-      name: 'Kids Sneakers',
-      category: 'Kids',
-      price: 49.99,
-      imageUrl: '/placeholder-sneakers.jpg',
-      description: 'Comfortable kids sneakers'
-    },
-    {
-      id: '5',
-      name: 'Leather Jacket',
-      category: 'Mens',
-      price: 199.99,
-      imageUrl: '/placeholder-jacket.jpg',
-      description: 'Premium leather jacket'
-    }
-  ]
-
   // Debounced search function
   useEffect(() => {
     if (query.length === 0) {
@@ -84,19 +40,24 @@ export const Search = ({ placeholder = "Search for products...", maxResults = 5 
 
     setIsLoading(true)
     
-    // Simulate API delay
-    const timeoutId = setTimeout(() => {
-      const filteredResults = mockProducts
-        .filter(product => 
-          product.name.toLowerCase().includes(query.toLowerCase()) ||
-          product.category.toLowerCase().includes(query.toLowerCase()) ||
-          product.description?.toLowerCase().includes(query.toLowerCase())
-        )
-        .slice(0, maxResults)
-      
-      setResults(filteredResults)
-      setIsLoading(false)
-      setIsOpen(true)
+    // Debounce API call
+    const timeoutId = setTimeout(async () => {
+      try {
+        const response = await fetch(`/api/search?q=${encodeURIComponent(query)}&limit=${maxResults}`)
+        
+        if (!response.ok) {
+          throw new Error('Search failed')
+        }
+
+        const data = await response.json()
+        setResults(data.products || [])
+        setIsOpen(true)
+      } catch (error) {
+        console.error('Error searching products:', error)
+        setResults([])
+      } finally {
+        setIsLoading(false)
+      }
     }, 300)
 
     return () => clearTimeout(timeoutId)
@@ -193,7 +154,7 @@ export const Search = ({ placeholder = "Search for products...", maxResults = 5 
                     <div className="result-content">
                       <h4 className="result-title">{result.name}</h4>
                       <p className="result-category">{result.category}</p>
-                      <p className="result-price">${result.price.toFixed(2)}</p>
+                      <p className="result-price">${Number(result.price).toFixed(2)}</p>
                     </div>
                   </Link>
                 ))}
