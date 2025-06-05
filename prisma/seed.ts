@@ -67,6 +67,10 @@ async function main() {
     create: { name: "Men's Pants" } 
   });
 
+  // Clear existing data to avoid conflicts
+  await prisma.productSize.deleteMany({});
+  await prisma.productColor.deleteMany({});
+
   // Seed Men's T-Shirts
   await prisma.product.createMany({
     data: [
@@ -95,7 +99,38 @@ async function main() {
         categoryId: tshirtCategory.id,
       },
     ],
+    skipDuplicates: true
   });
+
+  // Get created T-shirt products
+  const tshirtProducts = await prisma.product.findMany({
+    where: { categoryId: tshirtCategory.id }
+  });
+
+  // Add sizes and colors for T-Shirts
+  for (const product of tshirtProducts) {
+    // Add sizes
+    await prisma.productSize.createMany({
+      data: [
+        { productId: product.id, size: 'S', stock: 20 },
+        { productId: product.id, size: 'M', stock: 30 },
+        { productId: product.id, size: 'L', stock: 25 },
+        { productId: product.id, size: 'XL', stock: 15 },
+      ],
+      skipDuplicates: true
+    });
+
+    // Add colors
+    await prisma.productColor.createMany({
+      data: [
+        { productId: product.id, color: 'Black', stock: 25 },
+        { productId: product.id, color: 'White', stock: 30 },
+        { productId: product.id, color: 'Navy', stock: 20 },
+        { productId: product.id, color: 'Gray', stock: 15 },
+      ],
+      skipDuplicates: true
+    });
+  }
 
   // Seed Men's Jackets
   await prisma.product.createMany({
@@ -125,7 +160,37 @@ async function main() {
         categoryId: jacketCategory.id,
       },
     ],
+    skipDuplicates: true
   });
+
+  // Get created Jacket products
+  const jacketProducts = await prisma.product.findMany({
+    where: { categoryId: jacketCategory.id }
+  });
+
+  // Add sizes and colors for Jackets
+  for (const product of jacketProducts) {
+    // Add sizes
+    await prisma.productSize.createMany({
+      data: [
+        { productId: product.id, size: 'M', stock: 8 },
+        { productId: product.id, size: 'L', stock: 12 },
+        { productId: product.id, size: 'XL', stock: 10 },
+        { productId: product.id, size: 'XXL', stock: 5 },
+      ],
+      skipDuplicates: true
+    });
+
+    // Add colors (fewer colors for jackets)
+    await prisma.productColor.createMany({
+      data: [
+        { productId: product.id, color: 'Black', stock: 15 },
+        { productId: product.id, color: 'Brown', stock: 10 },
+        { productId: product.id, color: 'Navy', stock: 8 },
+      ],
+      skipDuplicates: true
+    });
+  }
 
   // Seed Men's Hoodies
   await prisma.product.createMany({
@@ -155,7 +220,39 @@ async function main() {
         categoryId: hoodieCategory.id,
       },
     ],
+    skipDuplicates: true
   });
+
+  // Get created Hoodie products
+  const hoodieProducts = await prisma.product.findMany({
+    where: { categoryId: hoodieCategory.id }
+  });
+
+  // Add sizes and colors for Hoodies
+  for (const product of hoodieProducts) {
+    // Add sizes
+    await prisma.productSize.createMany({
+      data: [
+        { productId: product.id, size: 'S', stock: 12 },
+        { productId: product.id, size: 'M', stock: 18 },
+        { productId: product.id, size: 'L', stock: 20 },
+        { productId: product.id, size: 'XL', stock: 15 },
+        { productId: product.id, size: 'XXL', stock: 10 },
+      ],
+      skipDuplicates: true
+    });
+
+    // Add colors
+    await prisma.productColor.createMany({
+      data: [
+        { productId: product.id, color: 'Black', stock: 20 },
+        { productId: product.id, color: 'Gray', stock: 18 },
+        { productId: product.id, color: 'Navy', stock: 15 },
+        { productId: product.id, color: 'Maroon', stock: 12 },
+      ],
+      skipDuplicates: true
+    });
+  }
 
   // Seed Men's Polo Shirts
   await prisma.product.createMany({
@@ -185,7 +282,39 @@ async function main() {
         categoryId: poloCategory.id,
       },
     ],
+    skipDuplicates: true
   });
+
+  // Get created Polo products
+  const poloProducts = await prisma.product.findMany({
+    where: { categoryId: poloCategory.id }
+  });
+
+  // Add sizes and colors for Polo Shirts
+  for (const product of poloProducts) {
+    // Add sizes
+    await prisma.productSize.createMany({
+      data: [
+        { productId: product.id, size: 'S', stock: 15 },
+        { productId: product.id, size: 'M', stock: 25 },
+        { productId: product.id, size: 'L', stock: 22 },
+        { productId: product.id, size: 'XL', stock: 18 },
+      ],
+      skipDuplicates: true
+    });
+
+    // Add colors
+    await prisma.productColor.createMany({
+      data: [
+        { productId: product.id, color: 'White', stock: 25 },
+        { productId: product.id, color: 'Navy', stock: 22 },
+        { productId: product.id, color: 'Black', stock: 18 },
+        { productId: product.id, color: 'Green', stock: 15 },
+        { productId: product.id, color: 'Red', stock: 10 },
+      ],
+      skipDuplicates: true
+    });
+  }
 
   // Seed Men's Pants
   await prisma.product.createMany({
@@ -215,7 +344,39 @@ async function main() {
         categoryId: pantsCategory.id,
       },
     ],
+    skipDuplicates: true
   });
+
+  // Get created Pants products
+  const pantsProducts = await prisma.product.findMany({
+    where: { categoryId: pantsCategory.id }
+  });
+
+  // Add sizes and colors for Pants
+  for (const product of pantsProducts) {
+    // Add sizes (waist sizes for pants)
+    await prisma.productSize.createMany({
+      data: [
+        { productId: product.id, size: '30', stock: 12 },
+        { productId: product.id, size: '32', stock: 20 },
+        { productId: product.id, size: '34', stock: 18 },
+        { productId: product.id, size: '36', stock: 15 },
+        { productId: product.id, size: '38', stock: 10 },
+      ],
+      skipDuplicates: true
+    });
+
+    // Add colors
+    await prisma.productColor.createMany({
+      data: [
+        { productId: product.id, color: 'Blue', stock: 20 },
+        { productId: product.id, color: 'Black', stock: 18 },
+        { productId: product.id, color: 'Khaki', stock: 15 },
+        { productId: product.id, color: 'Gray', stock: 12 },
+      ],
+      skipDuplicates: true
+    });
+  }
 
   console.log('Seeded 5 categories with 3 products each (15 total products)');
 }

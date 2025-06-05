@@ -12,8 +12,8 @@ interface Product {
   image: string;
   description?: string;
   category?: string;
-  sizes?: string[];
-  colors?: string[];
+  sizes?: Array<{ size: string; inStock: boolean }>;
+  colors?: Array<{ color: string; inStock: boolean }>;
 }
 
 interface ProductsDisplayProps {

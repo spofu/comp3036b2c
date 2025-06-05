@@ -39,10 +39,12 @@ export default function RootLayout({
             <main className="main-content">
               {children}
             </main>
+            <footer>
+              <Footer />
+            </footer>
           </CartProvider>
         </AuthProvider>
       </body>
-      <Footer/>
     </html>
   );
 }

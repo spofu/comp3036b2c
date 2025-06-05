@@ -211,9 +211,11 @@ export const Cart: React.FC<CartProps> = ({
               <span className="summary-value">${total.toFixed(2)}</span>
             </div>
 
-            <button className="checkout-button">
-              Proceed to Checkout
-            </button>
+            <Link href="/checkout">
+              <button className="checkout-button">
+                Proceed to Checkout
+              </button>
+            </Link>
 
             <div className="payment-methods">
               <p className="payment-title">We Accept</p>

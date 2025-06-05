@@ -43,7 +43,15 @@ export async function GET(request: NextRequest) {
         ]
       },
       include: {
-        category: true
+        category: true,
+        sizes: { 
+          where: { stock: { gt: 0 } },
+          orderBy: { size: 'asc' }
+        },
+        colors: { 
+          where: { stock: { gt: 0 } },
+          orderBy: { color: 'asc' }
+        }
       },
       take: parseInt(limit),
       orderBy: {
@@ -58,10 +66,16 @@ export async function GET(request: NextRequest) {
       category: product.category?.name || 'Uncategorized',
       price: Number(product.price),
       imageUrl: product.imageUrl || '/images/products/default.jpg',
-      description: product.description
+      description: product.description,
+      stock: product.stock,
+      sizes: product.sizes?.map(s => ({ size: s.size, inStock: s.stock > 0 })) || [],
+      colors: product.colors?.map(c => ({ color: c.color, inStock: c.stock > 0 })) || []
     }));
 
-    return NextResponse.json({ products: searchResults });
+    return NextResponse.json({ 
+      products: searchResults,
+      total: searchResults.length 
+    });
   } catch (error) {
     console.error('Error searching products:', error);
     return NextResponse.json({ error: 'Failed to search products' }, { status: 500 });

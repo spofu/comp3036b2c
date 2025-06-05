@@ -11,7 +11,7 @@ export const Footer = () => {
         <div className="footer-columns">
           {/* Column 1: Company info */}
           <div className="footer-column">
-            <h3 className="column-title">E-Commerce Type Shii</h3>
+            <h3 className="column-title">CLOOOOTHES</h3>
             <p className="company-description">
               Discover the latest trends in fashion with our curated collections for men, women, and kids.
             </p>

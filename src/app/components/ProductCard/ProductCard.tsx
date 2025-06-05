@@ -13,8 +13,8 @@ interface Product {
   image: string;
   description?: string;
   category?: string;
-  sizes?: string[];
-  colors?: string[];
+  sizes?: Array<{ size: string; inStock: boolean }>;
+  colors?: Array<{ color: string; inStock: boolean }>;
 }
 
 interface ProductCardProps {
@@ -22,8 +22,12 @@ interface ProductCardProps {
 }
 
 export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
-  const [selectedSize, setSelectedSize] = useState<string>(product.sizes?.[0] || '');
-  const [selectedColor, setSelectedColor] = useState<string>(product.colors?.[0] || '');
+  const [selectedSize, setSelectedSize] = useState<string>(
+    product.sizes?.find(s => s.inStock)?.size || product.sizes?.[0]?.size || ''
+  );
+  const [selectedColor, setSelectedColor] = useState<string>(
+    product.colors?.find(c => c.inStock)?.color || product.colors?.[0]?.color || ''
+  );
   const [isAdding, setIsAdding] = useState(false);
 
   const { addItem } = useCart();
@@ -35,9 +39,10 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
     setIsAdding(true);
     
     try {
-      // Add to cart using context
-      addItem({
-        id: product.id,
+      // Add to cart using context (handles both localStorage and database)
+      await addItem({
+        id: `${product.id}-${selectedSize}-${selectedColor}`,
+        productId: product.id,
         name: product.name,
         price: product.price,
         image: product.image,
@@ -46,24 +51,8 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
         quantity: 1
       });
 
-      // Also sync with backend
-      const response = await fetch('/api/cart', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          userId: '1', // In a real app, get this from auth context
-          productId: product.id,
-          quantity: 1,
-          size: selectedSize,
-          color: selectedColor
-        })
-      });
-
-      if (!response.ok) {
-        console.error('Failed to sync with backend cart');
-      }
+      // Show success feedback
+      console.log('Item added to cart successfully');
     } catch (error) {
       console.error('Error adding item to cart:', error);
     }
@@ -109,8 +98,14 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
               onChange={(e) => setSelectedSize(e.target.value)}
               className="option-select"
             >
-              {product.sizes.map(size => (
-                <option key={size} value={size}>{size}</option>
+              {product.sizes.map(sizeOption => (
+                <option 
+                  key={sizeOption.size} 
+                  value={sizeOption.size}
+                  disabled={!sizeOption.inStock}
+                >
+                  {sizeOption.size}{!sizeOption.inStock ? ' (Out of Stock)' : ''}
+                </option>
               ))}
             </select>
           </div>
@@ -124,8 +119,14 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
               onChange={(e) => setSelectedColor(e.target.value)}
               className="option-select"
             >
-              {product.colors.map(color => (
-                <option key={color} value={color}>{color}</option>
+              {product.colors.map(colorOption => (
+                <option 
+                  key={colorOption.color} 
+                  value={colorOption.color}
+                  disabled={!colorOption.inStock}
+                >
+                  {colorOption.color}{!colorOption.inStock ? ' (Out of Stock)' : ''}
+                </option>
               ))}
             </select>
           </div>

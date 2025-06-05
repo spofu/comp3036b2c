@@ -21,6 +21,14 @@ export async function GET(
         where: { id: value },
         include: {
           category: true,
+          sizes: {
+            where: { stock: { gt: 0 } }, // Only include sizes with stock > 0
+            orderBy: { size: 'asc' }
+          },
+          colors: {
+            where: { stock: { gt: 0 } }, // Only include colors with stock > 0
+            orderBy: { color: 'asc' }
+          },
           reviews: {
             include: {
               user: {
@@ -39,6 +47,14 @@ export async function GET(
         where: { slug: value },
         include: {
           category: true,
+          sizes: {
+            where: { stock: { gt: 0 } }, // Only include sizes with stock > 0
+            orderBy: { size: 'asc' }
+          },
+          colors: {
+            where: { stock: { gt: 0 } }, // Only include colors with stock > 0
+            orderBy: { color: 'asc' }
+          },
           reviews: {
             include: {
               user: {
@@ -63,33 +79,6 @@ export async function GET(
       ? product.reviews.reduce((sum, review) => sum + review.rating, 0) / product.reviews.length
       : 0;
 
-    // Create realistic size/color availability based on actual stock
-    const generateSizeAvailability = (totalStock: number) => {
-      // If stock is very low, make some sizes unavailable
-      const stockThreshold = totalStock < 30;
-      return [
-        { size: 'XS', inStock: !stockThreshold || Math.random() > 0.7 },
-        { size: 'S', inStock: !stockThreshold || Math.random() > 0.3 },
-        { size: 'M', inStock: true }, // M is usually always available
-        { size: 'L', inStock: true }, // L is usually always available
-        { size: 'XL', inStock: !stockThreshold || Math.random() > 0.4 },
-        { size: 'XXL', inStock: !stockThreshold || Math.random() > 0.6 }
-      ];
-    };
-
-    const generateColorAvailability = (totalStock: number) => {
-      // If stock is very low, make some colors unavailable
-      const stockThreshold = totalStock < 50;
-      return [
-        { color: 'Black', inStock: true }, // Black is usually always available
-        { color: 'White', inStock: !stockThreshold || Math.random() > 0.2 },
-        { color: 'Navy', inStock: !stockThreshold || Math.random() > 0.3 },
-        { color: 'Gray', inStock: !stockThreshold || Math.random() > 0.4 },
-        { color: 'Brown', inStock: !stockThreshold || Math.random() > 0.5 },
-        { color: 'Khaki', inStock: !stockThreshold || Math.random() > 0.6 }
-      ];
-    };
-
     // Transform product to match the expected format
     const formattedProduct = {
       id: product.id,
@@ -99,8 +88,14 @@ export async function GET(
       description: product.description,
       category: product.category?.name || 'Uncategorized',
       stock: product.stock,
-      sizes: generateSizeAvailability(product.stock),
-      colors: generateColorAvailability(product.stock),
+      sizes: product.sizes.map(size => ({
+        size: size.size,
+        inStock: size.stock > 0
+      })),
+      colors: product.colors.map(color => ({
+        color: color.color,
+        inStock: color.stock > 0
+      })),
       images: [
         product.imageUrl || '/images/products/default.jpg',
         // In a real app, you would have multiple images stored in the database

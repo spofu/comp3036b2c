@@ -38,18 +38,31 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
   // Load cart from localStorage or database on mount
   useEffect(() => {
     const loadCart = async () => {
+      console.log('🛒 CartContext: Loading cart, isLoggedIn:', isLoggedIn, 'user:', user?.id);
+      
+      // Force clear localStorage for debugging
+      localStorage.removeItem('shopping-cart');
+      console.log('🛒 CartContext: Cleared localStorage shopping-cart');
+      
       if (isLoggedIn && user) {
         // Load from database for logged-in users
+        console.log('🛒 CartContext: Loading from database for user:', user.id);
         await syncCartWithDatabase();
       } else {
         // Load from localStorage for guest users
         const savedCart = localStorage.getItem('shopping-cart');
+        console.log('🛒 CartContext: Checking localStorage, found:', savedCart);
+        
         if (savedCart) {
           try {
-            setItems(JSON.parse(savedCart));
+            const parsedCart = JSON.parse(savedCart);
+            console.log('🛒 CartContext: Parsed cart from localStorage:', parsedCart);
+            setItems(parsedCart);
           } catch (error) {
             console.error('Error loading cart from localStorage:', error);
           }
+        } else {
+          console.log('🛒 CartContext: No cart found in localStorage');
         }
       }
     };
@@ -75,9 +88,11 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
     if (!isLoggedIn || !user) return;
 
     try {
+      console.log('🛒 CartContext: Syncing with database for user:', user.id);
       const response = await fetch(`/api/cart?userId=${user.id}`);
       if (response.ok) {
         const data = await response.json();
+        console.log('🛒 CartContext: Database response:', data);
         setItems(data.cartItems || []);
       }
     } catch (error) {

@@ -18,7 +18,15 @@ export async function GET(request: NextRequest) {
     const products = await prisma.product.findMany({
       where: whereClause,
       include: {
-        category: true, // Include category information
+        category: true,
+        sizes: {
+          where: { stock: { gt: 0 } }, // Only include sizes with stock > 0
+          orderBy: { size: 'asc' }
+        },
+        colors: {
+          where: { stock: { gt: 0 } }, // Only include colors with stock > 0
+          orderBy: { color: 'asc' }
+        }
       },
       orderBy: { id: 'asc' },
       ...(limit && { take: parseInt(limit) })
@@ -32,8 +40,14 @@ export async function GET(request: NextRequest) {
       image: product.imageUrl || '/images/products/default.jpg',
       description: product.description,
       category: product.category?.name || 'Uncategorized',
-      sizes: ['S', 'M', 'L', 'XL'], // Default sizes - in a real app, this would come from the database
-      colors: ['Black', 'White', 'Navy', 'Gray'] // Default colors - in a real app, this would come from the database
+      sizes: product.sizes.map(size => ({
+        size: size.size,
+        inStock: size.stock > 0
+      })),
+      colors: product.colors.map(color => ({
+        color: color.color,
+        inStock: color.stock > 0
+      }))
     }));
 
     return NextResponse.json({ products: formattedProducts });

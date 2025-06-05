@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
+import { useRouter } from 'next/navigation'
 import './Search.css'
 
 interface SearchResult {
@@ -25,6 +26,7 @@ export const Search = ({ placeholder = "Search for products...", maxResults = 5 
   const [isLoading, setIsLoading] = useState(false)
   const [isOpen, setIsOpen] = useState(false)
   const searchRef = useRef<HTMLDivElement>(null)
+  const router = useRouter()
 
   // Debounced search function
   useEffect(() => {
@@ -87,8 +89,9 @@ export const Search = ({ placeholder = "Search for products...", maxResults = 5 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     if (query.trim()) {
-      // Navigate to search results page
-      window.location.href = `/search?q=${encodeURIComponent(query.trim())}`
+      // Navigate to search results page using Next.js router
+      router.push(`/search?q=${encodeURIComponent(query.trim())}`)
+      setIsOpen(false)
     }
   }
 
