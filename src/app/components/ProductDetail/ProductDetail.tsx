@@ -24,8 +24,8 @@ interface Product {
   description: string;
   category: string;
   stock: number;
-  sizes: string[];
-  colors: string[];
+  sizes: Array<{ size: string; inStock: boolean }>;
+  colors: Array<{ color: string; inStock: boolean }>;
   images: string[];
   reviews: Review[];
   averageRating: number;
@@ -69,8 +69,13 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({ productId }) => {
 
         const data = await response.json();
         setProduct(data.product);
-        setSelectedSize(data.product.sizes[0]);
-        setSelectedColor(data.product.colors[0]);
+        
+        // Set default selections to first available (in stock) options
+        const firstAvailableSize = data.product.sizes.find((s: any) => s.inStock)?.size || data.product.sizes[0]?.size;
+        const firstAvailableColor = data.product.colors.find((c: any) => c.inStock)?.color || data.product.colors[0]?.color;
+        
+        setSelectedSize(firstAvailableSize);
+        setSelectedColor(firstAvailableColor);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to fetch product');
       } finally {
@@ -204,13 +209,16 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({ productId }) => {
             <div className="option-group">
               <label className="option-label">Size:</label>
               <div className="size-options">
-                {product.sizes.map(size => (
+                {product.sizes.map(sizeOption => (
                   <button
-                    key={size}
-                    onClick={() => setSelectedSize(size)}
-                    className={`size-option ${selectedSize === size ? 'selected' : ''}`}
+                    key={sizeOption.size}
+                    onClick={() => setSelectedSize(sizeOption.size)}
+                    disabled={!sizeOption.inStock}
+                    className={`size-option ${selectedSize === sizeOption.size ? 'selected' : ''} ${!sizeOption.inStock ? 'out-of-stock' : ''}`}
+                    title={!sizeOption.inStock ? 'Out of stock' : undefined}
                   >
-                    {size}
+                    {sizeOption.size}
+                    {!sizeOption.inStock && <span className="out-of-stock-indicator">✗</span>}
                   </button>
                 ))}
               </div>
@@ -220,15 +228,17 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({ productId }) => {
             <div className="option-group">
               <label className="option-label">Color: {selectedColor}</label>
               <div className="color-options">
-                {product.colors.map(color => (
+                {product.colors.map(colorOption => (
                   <button
-                    key={color}
-                    onClick={() => setSelectedColor(color)}
-                    className={`color-option ${selectedColor === color ? 'selected' : ''}`}
-                    style={{ backgroundColor: color.toLowerCase() }}
-                    title={color}
+                    key={colorOption.color}
+                    onClick={() => setSelectedColor(colorOption.color)}
+                    disabled={!colorOption.inStock}
+                    className={`color-option ${selectedColor === colorOption.color ? 'selected' : ''} ${!colorOption.inStock ? 'out-of-stock' : ''}`}
+                    style={{ backgroundColor: colorOption.color.toLowerCase() }}
+                    title={!colorOption.inStock ? `${colorOption.color} - Out of stock` : colorOption.color}
                   >
-                    {selectedColor === color && <span className="color-check">✓</span>}
+                    {selectedColor === colorOption.color && <span className="color-check">✓</span>}
+                    {!colorOption.inStock && <span className="color-out-of-stock">✗</span>}
                   </button>
                 ))}
               </div>

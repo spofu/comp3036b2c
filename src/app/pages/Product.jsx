@@ -1,5 +1,5 @@
 import React from 'react'
-import { Item } from '.components/Items/Items'
+import { ProductDetail } from '.components/ProductDetail/ProductDetail'
 import { Footer } from './components/Footer/Footer';
 
 
@@ -9,7 +9,7 @@ export const Product = () => {
   return (
     <div className="product-page">
       <h1>{product.name}</h1>
-      <Item
+      <ProductDetail
         name={product.name}
         imageUrl={product.imageUrl}
         new_price={product.new_price}

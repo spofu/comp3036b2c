@@ -245,7 +245,7 @@
   padding: 0.75rem 1rem;
   border: 2px solid #e5e5e5;
   background-color: white;
-  color: #000000 !important;
+  color: #000000;
   border-radius: 8px;
   cursor: pointer;
   font-weight: 700;
@@ -262,9 +262,32 @@
 }
 
 .size-option.selected {
-  background-color: #1a1a1a;
-  color: white;
+  background-color: #1a1a1a !important;
+  color: white !important;
   border-color: #1a1a1a;
+}
+
+/* Out of Stock Size Options */
+.size-option.out-of-stock {
+  background-color: #f5f5f5;
+  color: #9ca3af;
+  border-color: #e5e5e5;
+  cursor: not-allowed;
+  opacity: 0.6;
+  position: relative;
+}
+
+.size-option.out-of-stock:hover {
+  border-color: #e5e5e5;
+  transform: none;
+  background-color: #f5f5f5;
+}
+
+.out-of-stock-indicator {
+  color: #ef4444;
+  font-weight: bold;
+  margin-left: 4px;
+  font-size: 0.75rem;
 }
 
 /* Color Options */
@@ -295,6 +318,31 @@
 .color-option.selected {
   border-color: #1a1a1a;
   box-shadow: 0 0 0 2px white, 0 0 0 4px #1a1a1a;
+}
+
+/* Out of Stock Color Options */
+.color-option.out-of-stock {
+  opacity: 0.4;
+  cursor: not-allowed;
+  position: relative;
+  border-color: #e5e5e5;
+}
+
+.color-option.out-of-stock:hover {
+  transform: none;
+  border-color: #e5e5e5;
+}
+
+.color-option.out-of-stock::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 2px;
+  height: 80%;
+  background-color: #ef4444;
+  transform: translate(-50%, -50%) rotate(45deg);
+  z-index: 1;
 }
 
 .color-check {

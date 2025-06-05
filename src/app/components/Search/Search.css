@@ -19,7 +19,7 @@
 
 .search-input {
   width: 100%;
-  padding: 12px 16px 12px 44px;
+  padding: 12px 16px;
   border: 2px solid #e5e7eb;
   border-radius: 8px;
   font-size: 16px;
@@ -35,16 +35,6 @@
 
 .search-input::placeholder {
   color: #9ca3af;
-}
-
-.search-icon {
-  position: absolute;
-  left: 12px;
-  width: 20px;
-  height: 20px;
-  color: #6b7280;
-  pointer-events: none;
-  z-index: 1;
 }
 
 .clear-button {

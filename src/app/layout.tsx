@@ -36,13 +36,13 @@ export default function RootLayout({
             <header>
               <Navbar />
             </header>
-            {children}
+            <main className="main-content">
+              {children}
+            </main>
           </CartProvider>
         </AuthProvider>
       </body>
-      <footer>
-        <Footer/>
-      </footer>
+      <Footer/>
     </html>
   );
 }

@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { ProductCard } from '../ProductCard/ProductCard';
+import { Filter } from '../Filter/Filter';
 import './ProductsDisplay.css';
 
 interface Product {
@@ -95,7 +96,7 @@ export const ProductsDisplay: React.FC<ProductsDisplayProps> = ({
     setFilteredProducts(filtered);
   }, [products, selectedCategory, sortBy]);
 
-  const categories = ['all', ...Array.from(new Set(products.map(p => p.category).filter(Boolean)))];
+  const categories = ['all', ...Array.from(new Set(products.map(p => p.category).filter(Boolean))) as string[]];
 
   if (loading) {
     return (
@@ -128,58 +129,22 @@ export const ProductsDisplay: React.FC<ProductsDisplayProps> = ({
     <div className="products-display">
       <div className="products-header">
         <h2 className="products-title">{title}</h2>
-        <p className="products-count">
-          {filteredProducts.length} product{filteredProducts.length !== 1 ? 's' : ''} found
-        </p>
       </div>
 
       {showFilters && (
-        <div className="products-filters">
-          <div className="filter-group">
-            <label htmlFor="category-filter">Category:</label>
-            <select 
-              id="category-filter"
-              value={selectedCategory} 
-              onChange={(e) => setSelectedCategory(e.target.value)}
-              className="filter-select"
-            >
-              {categories.map(cat => (
-                <option key={cat} value={cat}>
-                  {cat === 'all' ? 'All Categories' : cat}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div className="filter-group">
-            <label htmlFor="sort-filter">Sort by:</label>
-            <select 
-              id="sort-filter"
-              value={sortBy} 
-              onChange={(e) => setSortBy(e.target.value)}
-              className="filter-select"
-            >
-              <option value="name">Name (A-Z)</option>
-              <option value="price-low">Price (Low to High)</option>
-              <option value="price-high">Price (High to Low)</option>
-            </select>
-          </div>
-        </div>
+        <Filter
+          categories={categories}
+          selectedCategory={selectedCategory}
+          onCategoryChange={setSelectedCategory}
+          sortBy={sortBy}
+          onSortChange={setSortBy}
+          productCount={filteredProducts.length}
+          onShowAll={() => setSelectedCategory('all')}
+          showShowAllButton={true}
+        />
       )}
 
-      {filteredProducts.length === 0 ? (
-        <div className="no-products">
-          <p>No products found matching your criteria.</p>
-          {selectedCategory !== 'all' && (
-            <button 
-              onClick={() => setSelectedCategory('all')}
-              className="show-all-button"
-            >
-              Show All Products
-            </button>
-          )}
-        </div>
-      ) : (
+      {filteredProducts.length > 0 ? (
         <div className="products-grid">
           {filteredProducts.map((product) => (
             <ProductCard 
@@ -188,7 +153,7 @@ export const ProductsDisplay: React.FC<ProductsDisplayProps> = ({
             />
           ))}
         </div>
-      )}
+      ) : null}
 
       {!showFilters && products.length > filteredProducts.length && (
         <div className="view-more">

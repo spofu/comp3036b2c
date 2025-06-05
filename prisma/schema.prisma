@@ -43,6 +43,7 @@ enum Role {
 model Product {
   id          String   @id @default(uuid())
   name        String
+  slug        String?  @unique // URL-friendly version of the name (optional for migration)
   description String
   price       Decimal @db.Decimal(10, 2)// Changed to Decimal for precision
   stock       Int
@@ -56,6 +57,7 @@ model Product {
   cartItems   CartItem[]
 
   @@index([categoryId])
+  @@index([slug])
 }
 
 model CartItem {

@@ -122,8 +122,14 @@
   border-radius: 6px;
   font-size: 0.875rem;
   background-color: white;
+  color: black;
   cursor: pointer;
   transition: border-color 0.2s ease;
+}
+
+.option-select option {
+  color: black;
+  background-color: white;
 }
 
 .option-select:focus {
