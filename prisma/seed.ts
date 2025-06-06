@@ -4,6 +4,7 @@ import bcrypt from 'bcryptjs';
 const prisma = new PrismaClient();
 
 async function main() {
+
   // Seed users for testing authentication
   console.log('Seeding users...');
   
@@ -32,353 +33,229 @@ async function main() {
     }
   });
   
-  console.log(`Created customer user: ${customerUser.email}`);
-  console.log(`Created admin user: ${adminUser.email}`);
+  console.log(`Created users: ${customerUser.email}, ${adminUser.email}`);
 
-  // Seed categories
+  // Seed categories - use upsert to handle existing categories
   console.log('Seeding categories...');
-  const tshirtCategory = await prisma.category.upsert({ 
-    where: { name: "Men's T-Shirts" }, 
-    update: {}, 
-    create: { name: "Men's T-Shirts" } 
-  });
+  const categoryNames = ["Men's T-Shirts", "Men's Jackets", "Men's Hoodies", "Men's Polo Shirts", "Men's Pants"];
   
-  const jacketCategory = await prisma.category.upsert({ 
-    where: { name: "Men's Jackets" }, 
-    update: {}, 
-    create: { name: "Men's Jackets" } 
-  });
+  const categories = await Promise.all(
+    categoryNames.map(name => 
+      prisma.category.upsert({
+        where: { name },
+        update: {},
+        create: { name }
+      })
+    )
+  );
+
+  const [tshirtCategory, jacketCategory, hoodieCategory, poloCategory, pantsCategory] = categories;
+
+  // Product data with variants
+  const productData = [
+    // T-Shirts
+    {
+      name: 'Classic Cotton Crew Neck T-Shirt',
+      slug: 'classic-cotton-crew-neck-tshirt',
+      description: 'Premium 100% cotton crew neck tee with comfortable fit and durable construction',
+      price: 24.99,
+      imageUrl: '/images/products/product-1.jpg',
+      categoryId: tshirtCategory.id,
+      variants: [
+        { size: 'S', color: 'Black', stock: 15, sku: 'CCT-S-BLK' },
+        { size: 'S', color: 'White', stock: 20, sku: 'CCT-S-WHT' },
+        { size: 'M', color: 'Black', stock: 25, sku: 'CCT-M-BLK' },
+        { size: 'M', color: 'White', stock: 30, sku: 'CCT-M-WHT' },
+        { size: 'L', color: 'Black', stock: 20, sku: 'CCT-L-BLK' },
+        { size: 'L', color: 'White', stock: 25, sku: 'CCT-L-WHT' },
+        { size: 'XL', color: 'Black', stock: 15, sku: 'CCT-XL-BLK' },
+        { size: 'XL', color: 'White', stock: 18, sku: 'CCT-XL-WHT' }
+      ]
+    },
+    {
+      name: 'Vintage Graphic Print T-Shirt',
+      slug: 'vintage-graphic-print-tshirt',
+      description: 'Retro-style graphic tee with distressed print and soft-wash finish',
+      price: 29.99,
+      imageUrl: '/images/products/product-2.jpg',
+      categoryId: tshirtCategory.id,
+      variants: [
+        { size: 'S', color: 'Navy', stock: 12, sku: 'VGT-S-NAV' },
+        { size: 'M', color: 'Navy', stock: 18, sku: 'VGT-M-NAV' },
+        { size: 'M', color: 'Gray', stock: 15, sku: 'VGT-M-GRY' },
+        { size: 'L', color: 'Navy', stock: 20, sku: 'VGT-L-NAV' },
+        { size: 'L', color: 'Gray', stock: 16, sku: 'VGT-L-GRY' },
+        { size: 'XL', color: 'Navy', stock: 14, sku: 'VGT-XL-NAV' }
+      ]
+    },
+    
+    // Jackets
+    {
+      name: 'Genuine Leather Biker Jacket',
+      slug: 'genuine-leather-biker-jacket',
+      description: 'Premium genuine leather jacket with quilted shoulders and multiple pockets',
+      price: 249.99,
+      imageUrl: '/images/products/product-4.jpg',
+      categoryId: jacketCategory.id,
+      variants: [
+        { size: 'M', color: 'Black', stock: 5, sku: 'LBJ-M-BLK' },
+        { size: 'L', color: 'Black', stock: 8, sku: 'LBJ-L-BLK' },
+        { size: 'L', color: 'Brown', stock: 6, sku: 'LBJ-L-BRN' },
+        { size: 'XL', color: 'Black', stock: 6, sku: 'LBJ-XL-BLK' }
+      ]
+    },
+    {
+      name: 'Waterproof Rain Jacket',
+      slug: 'waterproof-rain-jacket',
+      description: 'Lightweight waterproof jacket with breathable fabric and adjustable hood',
+      price: 89.99,
+      imageUrl: '/images/products/product-5.jpg',
+      categoryId: jacketCategory.id,
+      variants: [
+        { size: 'M', color: 'Navy', stock: 15, sku: 'WRJ-M-NAV' },
+        { size: 'L', color: 'Navy', stock: 20, sku: 'WRJ-L-NAV' },
+        { size: 'L', color: 'Black', stock: 18, sku: 'WRJ-L-BLK' },
+        { size: 'XL', color: 'Navy', stock: 12, sku: 'WRJ-XL-NAV' }
+      ]
+    },
+
+    // Hoodies
+    {
+      name: 'Pullover Fleece Hoodie',
+      slug: 'pullover-fleece-hoodie',
+      description: 'Cozy fleece-lined pullover hoodie with kangaroo pocket and drawstring hood',
+      price: 54.99,
+      imageUrl: '/images/products/product-7.jpg',
+      categoryId: hoodieCategory.id,
+      variants: [
+        { size: 'S', color: 'Black', stock: 12, sku: 'PFH-S-BLK' },
+        { size: 'M', color: 'Black', stock: 18, sku: 'PFH-M-BLK' },
+        { size: 'M', color: 'Gray', stock: 15, sku: 'PFH-M-GRY' },
+        { size: 'L', color: 'Black', stock: 20, sku: 'PFH-L-BLK' },
+        { size: 'L', color: 'Gray', stock: 16, sku: 'PFH-L-GRY' },
+        { size: 'XL', color: 'Black', stock: 14, sku: 'PFH-XL-BLK' }
+      ]
+    },
+
+    // Polo Shirts
+    {
+      name: 'Classic Pique Polo Shirt',
+      slug: 'classic-pique-polo-shirt',
+      description: 'Traditional pique cotton polo with three-button placket and ribbed collar',
+      price: 39.99,
+      imageUrl: '/images/products/product-10.jpg',
+      categoryId: poloCategory.id,
+      variants: [
+        { size: 'S', color: 'White', stock: 15, sku: 'CPP-S-WHT' },
+        { size: 'M', color: 'White', stock: 20, sku: 'CPP-M-WHT' },
+        { size: 'M', color: 'Navy', stock: 18, sku: 'CPP-M-NAV' },
+        { size: 'L', color: 'White', stock: 22, sku: 'CPP-L-WHT' },
+        { size: 'L', color: 'Navy', stock: 20, sku: 'CPP-L-NAV' },
+        { size: 'XL', color: 'Navy', stock: 15, sku: 'CPP-XL-NAV' }
+      ]
+    },
+
+    // Pants
+    {
+      name: 'Slim Fit Dark Wash Jeans',
+      slug: 'slim-fit-dark-wash-jeans',
+      description: 'Premium denim jeans with slim fit, dark wash, and comfortable stretch',
+      price: 79.99,
+      imageUrl: '/images/products/product-13.jpg',
+      categoryId: pantsCategory.id,
+      variants: [
+        { size: '30', color: 'Blue', stock: 12, sku: 'SFJ-30-BLU' },
+        { size: '32', color: 'Blue', stock: 20, sku: 'SFJ-32-BLU' },
+        { size: '32', color: 'Black', stock: 18, sku: 'SFJ-32-BLK' },
+        { size: '34', color: 'Blue', stock: 18, sku: 'SFJ-34-BLU' },
+        { size: '34', color: 'Black', stock: 16, sku: 'SFJ-34-BLK' },
+        { size: '36', color: 'Blue', stock: 12, sku: 'SFJ-36-BLU' }
+      ]
+    },
+    {
+      name: 'Business Casual Chino Pants',
+      slug: 'business-casual-chino-pants',
+      description: 'Versatile cotton chino pants perfect for office or casual occasions',
+      price: 59.99,
+      imageUrl: '/images/products/product-14.jpg',
+      categoryId: pantsCategory.id,
+      variants: [
+        { size: '30', color: 'Khaki', stock: 15, sku: 'BCC-30-KHK' },
+        { size: '32', color: 'Khaki', stock: 25, sku: 'BCC-32-KHK' },
+        { size: '32', color: 'Gray', stock: 20, sku: 'BCC-32-GRY' },
+        { size: '34', color: 'Khaki', stock: 22, sku: 'BCC-34-KHK' },
+        { size: '34', color: 'Gray', stock: 18, sku: 'BCC-34-GRY' }
+      ]
+    }
+  ];
+
+  // Create products with variants
+  console.log('Seeding products and variants...');
   
-  const hoodieCategory = await prisma.category.upsert({ 
-    where: { name: "Men's Hoodies" }, 
-    update: {}, 
-    create: { name: "Men's Hoodies" } 
-  });
-  
-  const poloCategory = await prisma.category.upsert({ 
-    where: { name: "Men's Polo Shirts" }, 
-    update: {}, 
-    create: { name: "Men's Polo Shirts" } 
-  });
-  
-  const pantsCategory = await prisma.category.upsert({ 
-    where: { name: "Men's Pants" }, 
-    update: {}, 
-    create: { name: "Men's Pants" } 
-  });
-
-  // Clear existing data to avoid conflicts
-  await prisma.productSize.deleteMany({});
-  await prisma.productColor.deleteMany({});
-
-  // Seed Men's T-Shirts
-  await prisma.product.createMany({
-    data: [
-      {
-        name: 'Classic Cotton Crew Neck T-Shirt',
-        description: 'Premium 100% cotton crew neck tee with comfortable fit and durable construction',
-        price: 24.99,
-        stock: 120,
-        imageUrl: '/images/products/product-1.jpg',
-        categoryId: tshirtCategory.id,
-      },
-      {
-        name: 'Vintage Graphic Print T-Shirt',
-        description: 'Retro-style graphic tee with distressed print and soft-wash finish',
-        price: 29.99,
-        stock: 85,
-        imageUrl: '/images/products/product-2.jpg',
-        categoryId: tshirtCategory.id,
-      },
-      {
-        name: 'Performance Athletic T-Shirt',
-        description: 'Moisture-wicking polyester blend tee perfect for workouts and active wear',
-        price: 34.99,
-        stock: 95,
-        imageUrl: '/images/products/product-3.jpg',
-        categoryId: tshirtCategory.id,
-      },
-    ],
-    skipDuplicates: true
-  });
-
-  // Get created T-shirt products
-  const tshirtProducts = await prisma.product.findMany({
-    where: { categoryId: tshirtCategory.id }
-  });
-
-  // Add sizes and colors for T-Shirts
-  for (const product of tshirtProducts) {
-    // Add sizes
-    await prisma.productSize.createMany({
-      data: [
-        { productId: product.id, size: 'S', stock: 20 },
-        { productId: product.id, size: 'M', stock: 30 },
-        { productId: product.id, size: 'L', stock: 25 },
-        { productId: product.id, size: 'XL', stock: 15 },
-      ],
-      skipDuplicates: true
+  for (const productInfo of productData) {
+    const { variants, ...productData } = productInfo;
+    
+    // Calculate total stock from variants
+    const totalStock = variants.reduce((sum, variant) => sum + variant.stock, 0);
+    
+    // Check if product already exists by slug
+    const existingProduct = await prisma.product.findUnique({
+      where: { slug: productData.slug }
+    });
+    
+    if (existingProduct) {
+      console.log(`Product already exists: ${productData.name}, skipping...`);
+      continue;
+    }
+    
+    // Create product
+    const product = await prisma.product.create({
+      data: {
+        ...productData,
+        stock: totalStock
+      }
     });
 
-    // Add colors
-    await prisma.productColor.createMany({
-      data: [
-        { productId: product.id, color: 'Black', stock: 25 },
-        { productId: product.id, color: 'White', stock: 30 },
-        { productId: product.id, color: 'Navy', stock: 20 },
-        { productId: product.id, color: 'Gray', stock: 15 },
-      ],
-      skipDuplicates: true
+    // Create variants for this product
+    await prisma.productVariant.createMany({
+      data: variants.map(variant => ({
+        ...variant,
+        productId: product.id
+      }))
     });
+
+    console.log(`Created product: ${product.name} with ${variants.length} variants`);
   }
 
-  // Seed Men's Jackets
-  await prisma.product.createMany({
-    data: [
-      {
-        name: 'Genuine Leather Biker Jacket',
-        description: 'Premium genuine leather jacket with quilted shoulders and multiple pockets',
-        price: 249.99,
-        stock: 25,
-        imageUrl: '/images/products/product-4.jpg',
-        categoryId: jacketCategory.id,
-      },
-      {
-        name: 'Waterproof Rain Jacket',
-        description: 'Lightweight waterproof jacket with breathable fabric and adjustable hood',
-        price: 89.99,
-        stock: 60,
-        imageUrl: '/images/products/product-5.jpg',
-        categoryId: jacketCategory.id,
-      },
-      {
-        name: 'Classic Denim Jacket',
-        description: 'Timeless blue denim jacket with button closure and chest pockets',
-        price: 79.99,
-        stock: 45,
-        imageUrl: '/images/products/product-6.jpg',
-        categoryId: jacketCategory.id,
-      },
-    ],
-    skipDuplicates: true
+  // Create sample addresses for the customer (use upsert to avoid duplicates)
+  const existingAddress = await prisma.address.findFirst({
+    where: { 
+      userId: customerUser.id,
+      street: '123 Main Street'
+    }
   });
 
-  // Get created Jacket products
-  const jacketProducts = await prisma.product.findMany({
-    where: { categoryId: jacketCategory.id }
-  });
-
-  // Add sizes and colors for Jackets
-  for (const product of jacketProducts) {
-    // Add sizes
-    await prisma.productSize.createMany({
-      data: [
-        { productId: product.id, size: 'M', stock: 8 },
-        { productId: product.id, size: 'L', stock: 12 },
-        { productId: product.id, size: 'XL', stock: 10 },
-        { productId: product.id, size: 'XXL', stock: 5 },
-      ],
-      skipDuplicates: true
+  if (!existingAddress) {
+    await prisma.address.create({
+      data: {
+        userId: customerUser.id,
+        street: '123 Main Street',
+        apartment: 'Apt 4B',
+        city: 'Sydney',
+        state: 'NSW',
+        zipCode: '2000',
+        country: 'Australia'
+      }
     });
-
-    // Add colors (fewer colors for jackets)
-    await prisma.productColor.createMany({
-      data: [
-        { productId: product.id, color: 'Black', stock: 15 },
-        { productId: product.id, color: 'Brown', stock: 10 },
-        { productId: product.id, color: 'Navy', stock: 8 },
-      ],
-      skipDuplicates: true
-    });
+    console.log('Created sample address for customer');
+  } else {
+    console.log('Sample address already exists, skipping...');
   }
 
-  // Seed Men's Hoodies
-  await prisma.product.createMany({
-    data: [
-      {
-        name: 'Pullover Fleece Hoodie',
-        description: 'Cozy fleece-lined pullover hoodie with kangaroo pocket and drawstring hood',
-        price: 54.99,
-        stock: 75,
-        imageUrl: '/images/products/product-7.jpg',
-        categoryId: hoodieCategory.id,
-      },
-      {
-        name: 'Zip-Up Athletic Hoodie',
-        description: 'Full-zip hoodie with moisture-wicking fabric and athletic fit',
-        price: 64.99,
-        stock: 55,
-        imageUrl: '/images/products/product-8.jpg',
-        categoryId: hoodieCategory.id,
-      },
-      {
-        name: 'Oversized Streetwear Hoodie',
-        description: 'Trendy oversized hoodie with bold logo print and dropped shoulders',
-        price: 69.99,
-        stock: 40,
-        imageUrl: '/images/products/product-9.jpg',
-        categoryId: hoodieCategory.id,
-      },
-    ],
-    skipDuplicates: true
-  });
-
-  // Get created Hoodie products
-  const hoodieProducts = await prisma.product.findMany({
-    where: { categoryId: hoodieCategory.id }
-  });
-
-  // Add sizes and colors for Hoodies
-  for (const product of hoodieProducts) {
-    // Add sizes
-    await prisma.productSize.createMany({
-      data: [
-        { productId: product.id, size: 'S', stock: 12 },
-        { productId: product.id, size: 'M', stock: 18 },
-        { productId: product.id, size: 'L', stock: 20 },
-        { productId: product.id, size: 'XL', stock: 15 },
-        { productId: product.id, size: 'XXL', stock: 10 },
-      ],
-      skipDuplicates: true
-    });
-
-    // Add colors
-    await prisma.productColor.createMany({
-      data: [
-        { productId: product.id, color: 'Black', stock: 20 },
-        { productId: product.id, color: 'Gray', stock: 18 },
-        { productId: product.id, color: 'Navy', stock: 15 },
-        { productId: product.id, color: 'Maroon', stock: 12 },
-      ],
-      skipDuplicates: true
-    });
-  }
-
-  // Seed Men's Polo Shirts
-  await prisma.product.createMany({
-    data: [
-      {
-        name: 'Classic Pique Polo Shirt',
-        description: 'Traditional pique cotton polo with three-button placket and ribbed collar',
-        price: 39.99,
-        stock: 90,
-        imageUrl: '/images/products/product-10.jpg',
-        categoryId: poloCategory.id,
-      },
-      {
-        name: 'Performance Golf Polo',
-        description: 'Moisture-wicking golf polo with UV protection and stretch fabric',
-        price: 49.99,
-        stock: 70,
-        imageUrl: '/images/products/product-11.jpg',
-        categoryId: poloCategory.id,
-      },
-      {
-        name: 'Slim Fit Modern Polo',
-        description: 'Contemporary slim-fit polo with contrast collar and premium cotton blend',
-        price: 44.99,
-        stock: 65,
-        imageUrl: '/images/products/product-12.jpg',
-        categoryId: poloCategory.id,
-      },
-    ],
-    skipDuplicates: true
-  });
-
-  // Get created Polo products
-  const poloProducts = await prisma.product.findMany({
-    where: { categoryId: poloCategory.id }
-  });
-
-  // Add sizes and colors for Polo Shirts
-  for (const product of poloProducts) {
-    // Add sizes
-    await prisma.productSize.createMany({
-      data: [
-        { productId: product.id, size: 'S', stock: 15 },
-        { productId: product.id, size: 'M', stock: 25 },
-        { productId: product.id, size: 'L', stock: 22 },
-        { productId: product.id, size: 'XL', stock: 18 },
-      ],
-      skipDuplicates: true
-    });
-
-    // Add colors
-    await prisma.productColor.createMany({
-      data: [
-        { productId: product.id, color: 'White', stock: 25 },
-        { productId: product.id, color: 'Navy', stock: 22 },
-        { productId: product.id, color: 'Black', stock: 18 },
-        { productId: product.id, color: 'Green', stock: 15 },
-        { productId: product.id, color: 'Red', stock: 10 },
-      ],
-      skipDuplicates: true
-    });
-  }
-
-  // Seed Men's Pants
-  await prisma.product.createMany({
-    data: [
-      {
-        name: 'Slim Fit Dark Wash Jeans',
-        description: 'Premium denim jeans with slim fit, dark wash, and comfortable stretch',
-        price: 79.99,
-        stock: 80,
-        imageUrl: '/images/products/product-13.jpg',
-        categoryId: pantsCategory.id,
-      },
-      {
-        name: 'Business Casual Chino Pants',
-        description: 'Versatile cotton chino pants perfect for office or casual occasions',
-        price: 59.99,
-        stock: 100,
-        imageUrl: '/images/products/product-14.jpg',
-        categoryId: pantsCategory.id,
-      },
-      {
-        name: 'Cargo Utility Pants',
-        description: 'Durable cargo pants with multiple pockets and relaxed fit',
-        price: 49.99,
-        stock: 50,
-        imageUrl: '/images/products/product-15.jpg',
-        categoryId: pantsCategory.id,
-      },
-    ],
-    skipDuplicates: true
-  });
-
-  // Get created Pants products
-  const pantsProducts = await prisma.product.findMany({
-    where: { categoryId: pantsCategory.id }
-  });
-
-  // Add sizes and colors for Pants
-  for (const product of pantsProducts) {
-    // Add sizes (waist sizes for pants)
-    await prisma.productSize.createMany({
-      data: [
-        { productId: product.id, size: '30', stock: 12 },
-        { productId: product.id, size: '32', stock: 20 },
-        { productId: product.id, size: '34', stock: 18 },
-        { productId: product.id, size: '36', stock: 15 },
-        { productId: product.id, size: '38', stock: 10 },
-      ],
-      skipDuplicates: true
-    });
-
-    // Add colors
-    await prisma.productColor.createMany({
-      data: [
-        { productId: product.id, color: 'Blue', stock: 20 },
-        { productId: product.id, color: 'Black', stock: 18 },
-        { productId: product.id, color: 'Khaki', stock: 15 },
-        { productId: product.id, color: 'Gray', stock: 12 },
-      ],
-      skipDuplicates: true
-    });
-  }
-
-  console.log('Seeded 5 categories with 3 products each (15 total products)');
+  console.log('Seeding completed successfully!');
+  console.log(`Categories: ${categories.length}`);
+  console.log(`Products: ${productData.length}`);
+  console.log(`Product variants: ${productData.reduce((sum, p) => sum + p.variants.length, 0)}`);
 }
 
 main()

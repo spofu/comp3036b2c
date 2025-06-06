@@ -565,7 +565,7 @@ export const Checkout = () => {
                   {item.color && <p>Color: {item.color}</p>}
                 </div>
                 <div className="item-price">
-                  ${(item.price * item.quantity).toFixed(2)}
+                  ${(Number(item.price) * item.quantity).toFixed(2)}
                 </div>
               </div>
             ))}

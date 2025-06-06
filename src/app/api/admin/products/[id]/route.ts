@@ -4,10 +4,10 @@ import { requireAdmin } from '../../../auth/middleware'
 
 const prisma = new PrismaClient()
 
-// GET /api/admin/products/[id] - Get product with sizes and colors
+// GET /api/admin/products/[id] - Get product with variants
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const user = await requireAdmin(request)
@@ -16,15 +16,14 @@ export async function GET(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
+    const { id } = await params
+
     const product = await prisma.product.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: {
         category: true,
-        sizes: {
-          orderBy: { size: 'asc' }
-        },
-        colors: {
-          orderBy: { color: 'asc' }
+        variants: {
+          orderBy: [{ size: 'asc' }, { color: 'asc' }]
         }
       }
     })
@@ -43,7 +42,7 @@ export async function GET(
 // PATCH /api/admin/products/[id] - Update product stock
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const user = await requireAdmin(request)
@@ -51,6 +50,8 @@ export async function PATCH(
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
+
+    const { id } = await params
 
     const body = await request.json()
     const { stock } = body
@@ -60,15 +61,12 @@ export async function PATCH(
     }
 
     const updatedProduct = await prisma.product.update({
-      where: { id: params.id },
+      where: { id },
       data: { stock },
       include: {
         category: true,
-        sizes: {
-          orderBy: { size: 'asc' }
-        },
-        colors: {
-          orderBy: { color: 'asc' }
+        variants: {
+          orderBy: [{ size: 'asc' }, { color: 'asc' }]
         }
       }
     })

@@ -58,7 +58,7 @@ export const Cart: React.FC<CartProps> = ({
   };
 
   const calculateSubtotal = () => {
-    return cartItems.reduce((total, item) => total + (item.price * item.quantity), 0);
+    return cartItems.reduce((total, item) => total + (Number(item.price) * item.quantity), 0);
   };
 
   const calculateTax = (subtotal: number) => {
@@ -134,7 +134,7 @@ export const Cart: React.FC<CartProps> = ({
                   {item.size && <span className="item-size">Size: {item.size}</span>}
                   {item.color && <span className="item-color">Color: {item.color}</span>}
                 </div>
-                <p className="item-price">${item.price.toFixed(2)}</p>
+                <p className="item-price">${Number(item.price).toFixed(2)}</p>
               </div>
 
               <div className="cart-item-quantity">
@@ -159,7 +159,7 @@ export const Cart: React.FC<CartProps> = ({
               </div>
 
               <div className="cart-item-total">
-                <p className="item-total">${(item.price * item.quantity).toFixed(2)}</p>
+                <p className="item-total">${(Number(item.price) * item.quantity).toFixed(2)}</p>
               </div>
 
               <button 

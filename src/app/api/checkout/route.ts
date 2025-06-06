@@ -41,8 +41,7 @@ export async function POST(request: NextRequest) {
         const product = await tx.product.findUnique({
           where: { id: item.productId },
           include: {
-            sizes: true,
-            colors: true
+            variants: true
           }
         });
 
@@ -50,24 +49,20 @@ export async function POST(request: NextRequest) {
           throw new Error(`Product with ID ${item.productId} not found`);
         }
 
-        // Check main product stock
-        if (product.stock < item.quantity) {
-          throw new Error(`Insufficient stock for product ${product.name}. Available: ${product.stock}, Requested: ${item.quantity}`);
-        }
-
-        // Check size-specific stock if size is specified
-        if (item.size && item.size !== 'One Size') {
-          const sizeStock = product.sizes.find(s => s.size === item.size);
-          if (!sizeStock || sizeStock.stock < item.quantity) {
-            throw new Error(`Insufficient stock for product ${product.name} in size ${item.size}. Available: ${sizeStock?.stock || 0}, Requested: ${item.quantity}`);
+        // If variant is specified, check variant stock
+        if (item.productVariantId) {
+          const variant = product.variants.find(v => v.id === item.productVariantId);
+          if (!variant) {
+            throw new Error(`Product variant not found for product ${product.name}`);
           }
-        }
-
-        // Check color-specific stock if color is specified
-        if (item.color && item.color !== 'Default') {
-          const colorStock = product.colors.find(c => c.color === item.color);
-          if (!colorStock || colorStock.stock < item.quantity) {
-            throw new Error(`Insufficient stock for product ${product.name} in color ${item.color}. Available: ${colorStock?.stock || 0}, Requested: ${item.quantity}`);
+          
+          if (variant.stock < item.quantity) {
+            throw new Error(`Insufficient stock for product ${product.name} variant. Available: ${variant.stock}, Requested: ${item.quantity}`);
+          }
+        } else {
+          // Check main product stock if no specific variant
+          if (product.stock < item.quantity) {
+            throw new Error(`Insufficient stock for product ${product.name}. Available: ${product.stock}, Requested: ${item.quantity}`);
           }
         }
       }
@@ -89,43 +84,27 @@ export async function POST(request: NextRequest) {
           data: {
             orderId: order.id,
             productId: item.productId,
+            productVariantId: item.productVariantId || null,
             quantity: item.quantity,
             price: parseFloat(item.price.toString())
           }
         });
 
-        // Update main product stock
-        await tx.product.update({
-          where: { id: item.productId },
-          data: {
-            stock: {
-              decrement: item.quantity
-            }
-          }
-        });
-
-        // Update size-specific stock if applicable
-        if (item.size && item.size !== 'One Size') {
-          await tx.productSize.updateMany({
-            where: {
-              productId: item.productId,
-              size: item.size
-            },
+        // Update stock
+        if (item.productVariantId) {
+          // Update variant stock
+          await tx.productVariant.update({
+            where: { id: item.productVariantId },
             data: {
               stock: {
                 decrement: item.quantity
               }
             }
           });
-        }
-
-        // Update color-specific stock if applicable
-        if (item.color && item.color !== 'Default') {
-          await tx.productColor.updateMany({
-            where: {
-              productId: item.productId,
-              color: item.color
-            },
+        } else {
+          // Update main product stock
+          await tx.product.update({
+            where: { id: item.productId },
             data: {
               stock: {
                 decrement: item.quantity
