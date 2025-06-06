@@ -1,44 +1,39 @@
-// Example login component demonstrating how to use the extracted authentication logic
-// This is a demo showing the proper separation of UI and business logic
-
 "use client"
 
 import React, { useState } from 'react';
-import { useLogin, type LoginFormData } from '../../auth/Login/Login';
+import { useAuth } from '../context/AuthContext';
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
+import './login.css';
 
-const LoginComponentExample: React.FC = () => {
-  const [formData, setFormData] = useState<LoginFormData>({
-    email: '',
-    password: ''
-  });
+const LoginPage: React.FC = () => {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-
-  // Use the authentication hook (pure business logic)
-  const { login, isLoading, error, clearError } = useLogin();
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
-    // Clear error when user starts typing
-    if (error) clearError();
-  };
+  const { login, isLoading } = useAuth();
+  const router = useRouter();
+  const [error, setError] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // Call the pure authentication function
-    const result = await login(formData);
+    setError('');
+
+    const result = await login(email, password);
     
     if (result.success) {
-      console.log('Login successful!', result);
-      // Navigation is handled automatically by the useLogin hook
+      // AuthContext handles the redirect, but if no redirect is stored, go to shop
+      const redirectPath = localStorage.getItem('redirectAfterLogin');
+      if (!redirectPath) {
+        router.push('/');
+      }
     } else {
-      console.log('Login failed:', result.message);
-      // Error handling is managed by the hook
+      setError(result.message || 'Login failed. Please try again.');
     }
+  };
+
+  const handleInputChange = (setter: (value: string) => void) => (e: React.ChangeEvent<HTMLInputElement>) => {
+    setter(e.target.value);
+    if (error) setError(''); // Clear error when user starts typing
   };
 
   return (
@@ -60,46 +55,43 @@ const LoginComponentExample: React.FC = () => {
           )}
 
           <div className="form-group">
-            <label htmlFor="email" className="form-label">Email Address</label>
-            <div className="input-wrapper">
-              <svg className="input-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207" />
-              </svg>
-              <input
-                type="email"
-                id="email"
-                name="email"
-                className="form-input"
-                placeholder="Enter your email"
-                value={formData.email}
-                onChange={handleInputChange}
-                required
-                autoComplete="email"
-              />
-            </div>
+            <label htmlFor="email" className="form-label">
+              Email Address
+            </label>
+            <input
+              type="email"
+              id="email"
+              name="email"
+              value={email}
+              onChange={handleInputChange(setEmail)}
+              className="form-input"
+              placeholder="Enter your email"
+              required
+              disabled={isLoading}
+            />
           </div>
 
           <div className="form-group">
-            <label htmlFor="password" className="form-label">Password</label>
-            <div className="input-wrapper">
-              <svg className="input-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-              </svg>
+            <label htmlFor="password" className="form-label">
+              Password
+            </label>
+            <div className="password-input-wrapper">
               <input
                 type={showPassword ? 'text' : 'password'}
                 id="password"
                 name="password"
+                value={password}
+                onChange={handleInputChange(setPassword)}
                 className="form-input"
                 placeholder="Enter your password"
-                value={formData.password}
-                onChange={handleInputChange}
                 required
-                autoComplete="current-password"
+                disabled={isLoading}
               />
               <button
                 type="button"
                 className="password-toggle"
                 onClick={() => setShowPassword(!showPassword)}
+                disabled={isLoading}
               >
                 {showPassword ? (
                   <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -113,13 +105,6 @@ const LoginComponentExample: React.FC = () => {
                 )}
               </button>
             </div>
-          </div>
-
-          <div className="form-options">
-            <label className="remember-me">
-              <input type="checkbox" className="checkbox" />
-              <span className="checkbox-label">Remember me</span>
-            </label>
           </div>
 
           <button
@@ -141,11 +126,17 @@ const LoginComponentExample: React.FC = () => {
         <div className="demo-credentials">
           <h3>Demo Credentials for Testing:</h3>
           <p><strong>Customer:</strong> customer@example.com / password123</p>
-          <p><strong>Admin:</strong> admin@example.com / admin123</p>
+        </div>
+
+        <div className="login-footer">
+          <p>
+            Don't have an account? 
+            <Link href="/" className="signup-link"> Return to Shop</Link>
+          </p>
         </div>
       </div>
     </div>
   );
 };
 
-export default LoginComponentExample;
+export default LoginPage;

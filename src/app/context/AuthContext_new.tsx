@@ -93,13 +93,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setUser(userData);
       setIsLoading(false);
       
-      // Handle redirect after login
-      const redirectPath = localStorage.getItem('redirectAfterLogin');
-      if (redirectPath) {
-        localStorage.removeItem('redirectAfterLogin');
-        router.push(redirectPath);
-      }
-      
       return { success: true };
     } catch (error) {
       setIsLoading(false);

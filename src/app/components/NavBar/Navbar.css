@@ -214,3 +214,15 @@
 .hidden {
   display: none;
 }
+
+.user-greeting {
+  font-size: 0.875rem;
+  color: #374151;
+  font-weight: 500;
+}
+
+.auth-loading {
+  font-size: 0.875rem;
+  color: #6b7280;
+  padding: 8px 16px;
+}

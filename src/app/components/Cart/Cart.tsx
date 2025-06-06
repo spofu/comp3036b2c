@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import './Cart.css';
 import Link from 'next/link';
+import { useAuth } from '../../context/AuthContext';
 
 export interface CartItem {
   id: string;
@@ -29,6 +30,7 @@ export const Cart: React.FC<CartProps> = ({
   onClearCart
 }) => {
   const [cartItems, setCartItems] = useState<CartItem[]>(items);
+  const { isLoggedIn, user } = useAuth();
 
   useEffect(() => {
     setCartItems(items);
@@ -211,11 +213,25 @@ export const Cart: React.FC<CartProps> = ({
               <span className="summary-value">${total.toFixed(2)}</span>
             </div>
 
-            <Link href="/checkout">
-              <button className="checkout-button">
-                Proceed to Checkout
-              </button>
-            </Link>
+            {isLoggedIn ? (
+              <Link href="/checkout">
+                <button className="checkout-button">
+                  Proceed to Checkout
+                </button>
+              </Link>
+            ) : (
+              <div className="auth-prompt">
+                <p className="auth-message">Please sign in to continue with checkout</p>
+                <Link href="/login">
+                  <button className="login-to-checkout-button">
+                    Sign In to Checkout
+                  </button>
+                </Link>
+                <p className="guest-note">
+                  New customer? You'll be able to create an account during checkout.
+                </p>
+              </div>
+            )}
 
             <div className="payment-methods">
               <p className="payment-title">We Accept</p>

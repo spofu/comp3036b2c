@@ -7,6 +7,7 @@ import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { Search } from '../Search/Search'
 import { useCart } from '../../context/CartContext'
+import { useAuth } from '../../context/AuthContext'
 
 import ShoppingCart from '../Assests/shopping-cart.svg'
 
@@ -16,14 +17,18 @@ export const Navbar = () => {
     const pathname = usePathname();
     const [menu, setMenu] = useState("shop"); 
     const { getTotalItems } = useCart();
+    const { user, isLoggedIn, logout, isLoading } = useAuth();
     const cartItemCount = getTotalItems(); 
-    
     
     // Update menu state based on current pathname when component mounts
     useEffect(() => {
       if (pathname === '/' || pathname === '/shop') setMenu('shop');
       else if (pathname === '/categories') setMenu('categories');
     }, [pathname]);
+
+    const handleLogout = () => {
+      logout();
+    };
     
   return (
     <nav className='navbar'>
@@ -64,9 +69,20 @@ export const Navbar = () => {
         </div>
 
         <div className="auth-buttons">
-          <button className="login-button">
-            <Link href="/LoginSignUp">Login</Link>
-          </button>
+          {isLoading ? (
+            <div className="auth-loading">Loading...</div>
+          ) : isLoggedIn && user ? (
+            <>
+              <span className="user-greeting">Hello, {user.name}</span>
+              <button className="logout-button" onClick={handleLogout}>
+                Logout
+              </button>
+            </>
+          ) : (
+            <Link href="/login" className="login-button">
+              Login
+            </Link>
+          )}
         </div>
 
       </div>
