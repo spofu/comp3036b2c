@@ -8,16 +8,16 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const {
       userId,
-      items, // Array of cart items with productId, quantity, size, color, price
-      shippingAddress,
+      items,            // Array of cart items with productId, quantity, size, color, price
+      shippingAddress,  // Shipping address object
       paymentInfo,
       total
     } = body;
 
     // Validate required fields
-    if (!userId || !items || items.length === 0 || !shippingAddress || !total) {
+    if (!userId || !items || items.length === 0 || !total || !shippingAddress) {
       return NextResponse.json({ 
-        error: 'Missing required fields: userId, items, shippingAddress, and total are required' 
+        error: 'Missing required fields: userId, items, and total are required' 
       }, { status: 400 });
     }
 
@@ -27,7 +27,7 @@ export async function POST(request: NextRequest) {
       const address = await tx.address.create({
         data: {
           userId,
-          street: shippingAddress.address,
+          street: shippingAddress.street,
           apartment: shippingAddress.apartment || '',
           city: shippingAddress.city,
           state: shippingAddress.state,

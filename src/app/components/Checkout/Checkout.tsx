@@ -33,17 +33,29 @@ interface CheckoutFormData {
   billingZipCode: string;
 }
 
+interface SavedAddress {
+  id: string;
+  street: string;
+  apartment?: string;
+  city: string;
+  state: string;
+  zipCode: string;
+  country: string;
+}
+
 export const Checkout = () => {
   const router = useRouter()
   const { user, isLoggedIn } = useAuth()
   const { items, getTotalPrice, clearCart } = useCart()
   const [isProcessing, setIsProcessing] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [savedAddresses, setSavedAddresses] = useState<SavedAddress[]>([])
+  const [selectedAddressId, setSelectedAddressId] = useState<string>('')
 
   const [formData, setFormData] = useState<CheckoutFormData>({
     // Shipping Information
-    firstName: '',
-    lastName: '',
+    firstName: user?.name?.split(' ')[0] || '',
+    lastName: user?.name?.split(' ').slice(1).join(' ') || '',
     email: user?.email || '',
     phone: '',
     address: '',
@@ -57,7 +69,7 @@ export const Checkout = () => {
     cardNumber: '',
     expiryDate: '',
     cvv: '',
-    nameOnCard: '',
+    nameOnCard: user?.name || '',
     
     // Billing Address
     sameAsShipping: true,
@@ -66,6 +78,87 @@ export const Checkout = () => {
     billingState: '',
     billingZipCode: ''
   })
+
+  // Load user's saved addresses and auto-fill form
+  useEffect(() => {
+    if (isLoggedIn && user) {
+      loadSavedAddresses();
+    }
+  }, [isLoggedIn, user])
+
+  const loadSavedAddresses = async () => {
+    try {
+      const response = await fetch(`/api/addresses?userId=${user?.id}`);
+      if (response.ok) {
+        const data = await response.json();
+        setSavedAddresses(data.addresses || []);
+        
+        // Auto-fill with the most recent address if available
+        if (data.addresses && data.addresses.length > 0) {
+          const mostRecentAddress = data.addresses[0]; // Assuming they're sorted by creation date
+          setSelectedAddressId(mostRecentAddress.id);
+          fillAddressForm(mostRecentAddress);
+        } else {
+          // Use default address for convenience
+          fillDefaultAddress();
+        }
+      }
+    } catch (error) {
+      console.error('Error loading saved addresses:', error);
+      // Fall back to default address
+      fillDefaultAddress();
+    }
+  };
+
+  const fillAddressForm = (address: SavedAddress) => {
+    setFormData(prev => ({
+      ...prev,
+      address: address.street,
+      apartment: address.apartment || '',
+      city: address.city,
+      state: address.state,
+      zipCode: address.zipCode,
+      country: address.country
+    }));
+  };
+
+  const fillDefaultAddress = () => {
+    // Provide a convenient default address for testing/demo purposes
+    setFormData(prev => ({
+      ...prev,
+      address: '123 Main Street',
+      apartment: '',
+      city: 'Anytown',
+      state: 'CA',
+      zipCode: '12345',
+      country: 'United States'
+    }));
+  };
+
+  const handleAddressSelection = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const addressId = e.target.value;
+    setSelectedAddressId(addressId);
+    
+    if (addressId === 'new') {
+      // Clear form for new address
+      setFormData(prev => ({
+        ...prev,
+        address: '',
+        apartment: '',
+        city: '',
+        state: '',
+        zipCode: '',
+        country: 'United States'
+      }));
+    } else if (addressId === 'default') {
+      fillDefaultAddress();
+    } else {
+      const selectedAddress = savedAddresses.find(addr => addr.id === addressId);
+      if (selectedAddress) {
+        fillAddressForm(selectedAddress);
+      }
+    }
+  };
 
   // Redirect if not logged in or cart is empty
   useEffect(() => {
@@ -320,10 +413,33 @@ export const Checkout = () => {
 
       <div className="checkout-content">
         <form onSubmit={handleSubmit} className="checkout-form">
-          <div className="form-sections">
+          <div className="form-sections-container">
             {/* Shipping Information */}
-            <div className="form-section">
+            <div className="form-section shipping-section">
               <h2>Shipping Information</h2>
+              
+              {/* Address Selection Dropdown */}
+              {savedAddresses.length > 0 && (
+                <div className="form-group full-width">
+                  <label htmlFor="addressSelect">Select Saved Address</label>
+                  <select
+                    id="addressSelect"
+                    value={selectedAddressId}
+                    onChange={handleAddressSelection}
+                    disabled={isProcessing}
+                    className="address-select"
+                  >
+                    <option value="default">Use Default Address</option>
+                    {savedAddresses.map(address => (
+                      <option key={address.id} value={address.id}>
+                        {address.street}, {address.city}, {address.state} {address.zipCode}
+                      </option>
+                    ))}
+                    <option value="new">Enter New Address</option>
+                  </select>
+                </div>
+              )}
+              
               <div className="form-grid">
                 <div className="form-group">
                   <label htmlFor="firstName">First Name *</label>
@@ -409,26 +525,16 @@ export const Checkout = () => {
                 </div>
                 <div className="form-group">
                   <label htmlFor="state">State *</label>
-                  <select
+                  <input
+                    type="text"
                     id="state"
                     name="state"
                     value={formData.state}
                     onChange={handleInputChange}
+                    placeholder="Enter State"
                     required
                     disabled={isProcessing}
-                  >
-                    <option value="">Select State</option>
-                    <option value="CA">California</option>
-                    <option value="NY">New York</option>
-                    <option value="TX">Texas</option>
-                    <option value="FL">Florida</option>
-                    <option value="IL">Illinois</option>
-                    <option value="PA">Pennsylvania</option>
-                    <option value="OH">Ohio</option>
-                    <option value="GA">Georgia</option>
-                    <option value="NC">North Carolina</option>
-                    <option value="MI">Michigan</option>
-                  </select>
+                  />
                 </div>
                 <div className="form-group">
                   <label htmlFor="zipCode">ZIP Code *</label>

@@ -393,6 +393,19 @@
   margin-top: 0.75rem;
 }
 
+/* Layout address (shipping) and payment side by side inside the form */
+.checkout-form > .form-sections-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+}
+
+@media (max-width: 768px) {
+  .checkout-form > .form-sections-container {
+    grid-template-columns: 1fr;
+  }
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
   .checkout-container {

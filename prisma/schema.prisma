@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -14,64 +8,59 @@ datasource db {
 }
 
 model User {
-  id             String    @id @default(uuid())
-  email          String    @unique
-  hashedPassword String // Renamed for clarity
-  name           String // Made non-nullable (if required)
-  role           Role      @default(CUSTOMER)
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @updatedAt
-  orders         Order[]
-  reviews        Review[]
+  id             String     @id @default(uuid())
+  email          String     @unique
+  hashedPassword String
+  name           String
+  role           Role       @default(CUSTOMER)
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
   addresses      Address[]
   cartItems      CartItem[]
+  orders         Order[]
+  reviews        Review[]
 
   @@index([email])
 }
 
-enum Role {
-  CUSTOMER
-  ADMIN
-}
-
 model Product {
-  id          String   @id @default(uuid())
+  id          String           @id @default(uuid())
   name        String
-  slug        String?  @unique // URL-friendly version of the name (optional for migration)
   description String
-  price       Decimal @db.Decimal(10, 2)// Base price - variants can override
-  stock       Int     @default(0) // Total stock across all variants
-  imageUrl    String   // Primary product image
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  price       Decimal          @db.Decimal(10, 2)
+  stock       Int              @default(0)
+  imageUrl    String
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
   categoryId  String
-  category    Category @relation(fields: [categoryId], references: [id])
-  reviews     Review[]
-  orderItems  OrderItem[]
+  slug        String?          @unique
   cartItems   CartItem[]
+  orderItems  OrderItem[]
+  category    Category         @relation(fields: [categoryId], references: [id])
   variants    ProductVariant[]
+  reviews     Review[]
 
   @@index([categoryId])
   @@index([slug])
 }
 
 model ProductVariant {
-  id        String   @id @default(uuid())
-  productId String
-  sku       String?  @unique // Stock Keeping Unit for inventory tracking
-  size      String?  // e.g., "S", "M", "L", "XL" or shoe sizes
-  color     String?  // e.g., "Red", "Blue", "Black"
-  material  String?  // Additional variant attribute (optional)
-  price     Decimal? @db.Decimal(10, 2) // Override base product price if needed
-  stock     Int      @default(0)
-  imageUrl  String?  // Variant-specific image (optional)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
-  cartItems CartItem[]
+  id         String      @id @default(uuid())
+  productId  String
+  sku        String?     @unique
+  size       String?
+  color      String?
+  material   String?
+  price      Decimal?    @db.Decimal(10, 2)
+  stock      Int         @default(0)
+  imageUrl   String?
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+  cartItems  CartItem[]
   orderItems OrderItem[]
+  product    Product     @relation(fields: [productId], references: [id], onDelete: Cascade)
 
-  @@unique([productId, size, color]) // Prevent duplicate size/color combinations
+  @@unique([productId, size, color])
   @@index([productId])
   @@index([sku])
 }
@@ -80,15 +69,15 @@ model CartItem {
   id               String          @id @default(uuid())
   userId           String
   productId        String
-  productVariantId String?         // Reference to specific variant
   quantity         Int             @default(1)
   createdAt        DateTime        @default(now())
   updatedAt        DateTime        @updatedAt
-  user             User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  productVariantId String?
   product          Product         @relation(fields: [productId], references: [id], onDelete: Cascade)
   productVariant   ProductVariant? @relation(fields: [productVariantId], references: [id], onDelete: Cascade)
+  user             User            @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@unique([userId, productId, productVariantId]) // Prevent duplicate combinations
+  @@unique([userId, productId, productVariantId])
   @@index([userId])
   @@index([productId])
   @@index([productVariantId])
@@ -97,59 +86,51 @@ model CartItem {
 model Category {
   id        String    @id @default(uuid())
   name      String    @unique
-  products  Product[]
   updatedAt DateTime  @updatedAt
+  products  Product[]
 }
 
 model Order {
   id        String      @id @default(uuid())
   userId    String
-  user      User        @relation(fields: [userId], references: [id], onDelete: Cascade)
   total     Decimal     @db.Decimal(10, 2)
   status    OrderStatus @default(PENDING)
   createdAt DateTime    @default(now())
+  addressId String?
+  address   Address?    @relation(fields: [addressId], references: [id])
+  user      User        @relation(fields: [userId], references: [id], onDelete: Cascade)
   items     OrderItem[]
-  addressId String
-  address   Address     @relation(fields: [addressId], references: [id])
 
   @@index([userId])
   @@index([status])
-}
-
-enum OrderStatus {
-  PENDING
-  PAID
-  SHIPPED
-  DELIVERED
-  CANCELLED
 }
 
 model OrderItem {
   id               String          @id @default(uuid())
   orderId          String
   productId        String
-  productVariantId String?         // Reference to specific variant ordered
   quantity         Int
-  price            Decimal         @db.Decimal(10, 2) // Price at time of order
+  price            Decimal         @db.Decimal(10, 2)
+  productVariantId String?
   order            Order           @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  product          Product         @relation(fields: [productId], references: [id], onDelete: Restrict)
+  product          Product         @relation(fields: [productId], references: [id])
   productVariant   ProductVariant? @relation(fields: [productVariantId], references: [id], onDelete: Restrict)
 
+  @@unique([orderId, productId, productVariantId])
   @@index([orderId])
   @@index([productId])
   @@index([productVariantId])
-  @@unique([orderId, productId, productVariantId]) // Prevent duplicate variant in same order
 }
 
 model Review {
   id        String   @id @default(uuid())
   userId    String
   productId String
-  rating    Int // Consider adding application-level validation (e.g., 1–5)
+  rating    Int
   comment   String?  @default("")
   createdAt DateTime @default(now())
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, productId])
   @@index([productId])
@@ -169,4 +150,17 @@ model Address {
   orders    Order[]
 
   @@index([userId])
+}
+
+enum Role {
+  CUSTOMER
+  ADMIN
+}
+
+enum OrderStatus {
+  PENDING
+  PAID
+  SHIPPED
+  DELIVERED
+  CANCELLED
 }
