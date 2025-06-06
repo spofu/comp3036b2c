@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useEffect } from 'react'
+import React from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 
@@ -15,16 +15,9 @@ import './Navbar.css'
 
 export const Navbar = () => {
     const pathname = usePathname();
-    const [menu, setMenu] = useState("shop"); 
     const { getTotalItems } = useCart();
     const { user, isLoggedIn, logout, isLoading } = useAuth();
     const cartItemCount = getTotalItems(); 
-    
-    // Update menu state based on current pathname when component mounts
-    useEffect(() => {
-      if (pathname === '/' || pathname === '/shop') setMenu('shop');
-      else if (pathname === '/categories') setMenu('categories');
-    }, [pathname]);
 
     const handleLogout = () => {
       logout();
@@ -34,17 +27,12 @@ export const Navbar = () => {
     <nav className='navbar'>
       <div className="navbar-container">
         <div className="navbar-logo">
-          <p className="logo-text">CLOOOOTHES</p>
+          <Link href="/" className="logo-link">
+            <p className="logo-text">CLOOOOTHES</p>
+          </Link>
         </div>
         <ul className="navbar-links">
-          <li className={`navbar-link ${menu==="shop" ? "active" : ""}`}>
-            <Link href="/" className="nav-link">Shop</Link>
-            {menu==="shop" && <span className="active-indicator"></span>}
-          </li>
-          <li className={`navbar-link ${menu==="categories" ? "active" : ""}`}>
-            <Link href="/categories" className="nav-link">Categories</Link>
-            {menu==="categories" && <span className="active-indicator"></span>}
-          </li>
+          {/* Shop link removed - logo now handles navigation to home */}
         </ul>
 
         <div className="search-section">

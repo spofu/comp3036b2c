@@ -9,8 +9,10 @@ import './login.css';
 const LoginPage: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [name, setName] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const { login, isLoading } = useAuth();
+  const [isSignUp, setIsSignUp] = useState(false);
+  const { login, register, isLoading } = useAuth();
   const router = useRouter();
   const [error, setError] = useState('');
 
@@ -18,7 +20,12 @@ const LoginPage: React.FC = () => {
     e.preventDefault();
     setError('');
 
-    const result = await login(email, password);
+    let result;
+    if (isSignUp) {
+      result = await register(email, password, name);
+    } else {
+      result = await login(email, password);
+    }
     
     if (result.success) {
       // AuthContext handles the redirect, but if no redirect is stored, go to shop
@@ -27,7 +34,7 @@ const LoginPage: React.FC = () => {
         router.push('/');
       }
     } else {
-      setError(result.message || 'Login failed. Please try again.');
+      setError(result.message || `${isSignUp ? 'Registration' : 'Login'} failed. Please try again.`);
     }
   };
 
@@ -36,12 +43,25 @@ const LoginPage: React.FC = () => {
     if (error) setError(''); // Clear error when user starts typing
   };
 
+  const toggleMode = () => {
+    setIsSignUp(!isSignUp);
+    setError('');
+    setEmail('');
+    setPassword('');
+    setName('');
+  };
+
   return (
     <div className="login-container">
       <div className="login-card">
         <div className="login-header">
-          <h1 className="login-title">Welcome Back</h1>
-          <p className="login-subtitle">Sign in to your account to continue shopping</p>
+          <h1 className="login-title">{isSignUp ? 'Create Account' : 'Welcome Back'}</h1>
+          <p className="login-subtitle">
+            {isSignUp 
+              ? 'Sign up to start shopping with us' 
+              : 'Sign in to your account to continue shopping'
+            }
+          </p>
         </div>
 
         <form className="login-form" onSubmit={handleSubmit}>
@@ -51,6 +71,25 @@ const LoginPage: React.FC = () => {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
               {error}
+            </div>
+          )}
+
+          {isSignUp && (
+            <div className="form-group">
+              <label htmlFor="name" className="form-label">
+                Full Name
+              </label>
+              <input
+                type="text"
+                id="name"
+                name="name"
+                value={name}
+                onChange={handleInputChange(setName)}
+                className="form-input"
+                placeholder="Enter your full name"
+                required
+                disabled={isLoading}
+              />
             </div>
           )}
 
@@ -115,23 +154,22 @@ const LoginPage: React.FC = () => {
             {isLoading ? (
               <>
                 <div className="loading-spinner"></div>
-                Signing in...
+                {isSignUp ? 'Creating Account...' : 'Signing in...'}
               </>
             ) : (
-              'Sign In'
+              isSignUp ? 'Create Account' : 'Sign In'
             )}
           </button>
         </form>
 
-        <div className="demo-credentials">
-          <h3>Demo Credentials for Testing:</h3>
-          <p><strong>Customer:</strong> customer@example.com / password123</p>
-        </div>
-
         <div className="login-footer">
           <p>
-            Don't have an account? 
-            <Link href="/" className="signup-link"> Return to Shop</Link>
+            {isSignUp ? 'Already have an account? ' : "Don't have an account? "}
+            <button onClick={toggleMode} className="signup-link">
+              {isSignUp ? 'Sign In' : 'Sign Up'}
+            </button>
+            {" | "}
+            <Link href="/" className="signup-link">Return to Shop</Link>
           </p>
         </div>
       </div>

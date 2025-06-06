@@ -22,10 +22,26 @@
   align-items: center;
 }
 
+.logo-link {
+  text-decoration: none;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.logo-link:hover {
+  transform: scale(1.05);
+}
+
 .logo-text {
   font-size: 1.5rem;
   font-weight: bold;
   color: #4f46e5;
+  margin: 0;
+  transition: color 0.3s ease;
+}
+
+.logo-link:hover .logo-text {
+  color: #3730a3;
 }
 
 .navbar-links {
@@ -37,6 +53,14 @@
 }
 
 @media (max-width: 768px) {
+  .navbar-container {
+    padding: 8px 12px;
+  }
+
+  .logo-text {
+    font-size: 1.25rem;
+  }
+
   .navbar-links {
     display: none; /* Hide on mobile - you can implement mobile menu later */
   }

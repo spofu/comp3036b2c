@@ -15,6 +15,7 @@ interface AuthContextType {
   isLoading: boolean;
   isLoggedIn: boolean;
   login: (email: string, password: string) => Promise<{ success: boolean; message?: string }>;
+  register: (email: string, password: string, name: string) => Promise<{ success: boolean; message?: string }>;
   logout: () => void;
   isAuthenticated: boolean;
 }
@@ -60,38 +61,39 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     setIsLoading(true);
     
     try {
-      // Mock authentication using the seeded user data
-      const validUsers = [
-        { 
-          id: '1', 
-          email: 'customer@example.com', 
-          password: 'password123', 
-          name: 'John Customer', 
-          role: 'CUSTOMER' as const 
-        }
-      ];
+      console.log('Starting login for:', email);
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password })
+      });
 
-      const foundUser = validUsers.find(u => u.email === email && u.password === password);
-      
-      if (!foundUser) {
+      const data = await response.json();
+      console.log('Login response:', response.status, data);
+
+      if (!response.ok) {
         setIsLoading(false);
-        return { success: false, message: 'Invalid email or password' };
+        return { success: false, message: data.error || 'Login failed' };
       }
 
-      // Create user object without password
+      // Create user object from API response
       const userData: User = {
-        id: foundUser.id,
-        email: foundUser.email,
-        name: foundUser.name,
-        role: foundUser.role
+        id: data.user.id,
+        email: data.user.email,
+        name: data.user.name,
+        role: data.user.role
       };
 
       // Store auth data
-      localStorage.setItem('authToken', 'mock-jwt-token-' + foundUser.id);
+      localStorage.setItem('authToken', 'jwt-token-' + data.user.id);
       localStorage.setItem('userData', JSON.stringify(userData));
       
       setUser(userData);
       setIsLoading(false);
+      
+      console.log('Login successful, user set:', userData);
       
       // Handle redirect after login
       const redirectPath = localStorage.getItem('redirectAfterLogin');
@@ -102,8 +104,43 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       
       return { success: true };
     } catch (error) {
+      console.error('Login error:', error);
       setIsLoading(false);
       return { success: false, message: 'Login failed. Please try again.' };
+    }
+  };
+
+  const register = async (email: string, password: string, name: string): Promise<{ success: boolean; message?: string }> => {
+    setIsLoading(true);
+    
+    try {
+      console.log('Starting registration for:', email);
+      const response = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password, name })
+      });
+
+      const data = await response.json();
+      console.log('Registration response:', response.status, data);
+
+      if (!response.ok) {
+        setIsLoading(false);
+        return { success: false, message: data.error || 'Registration failed' };
+      }
+
+      console.log('Registration successful, attempting auto-login...');
+      // Auto-login after successful registration
+      const loginResult = await login(email, password);
+      console.log('Auto-login result:', loginResult);
+      return loginResult;
+
+    } catch (error) {
+      console.error('Registration error:', error);
+      setIsLoading(false);
+      return { success: false, message: 'Registration failed. Please try again.' };
     }
   };
 
@@ -119,6 +156,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     isLoading,
     isLoggedIn: !!user,
     login,
+    register,
     logout,
     isAuthenticated: !!user
   };

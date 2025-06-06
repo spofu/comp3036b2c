@@ -133,11 +133,6 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onSuccess }) =
           </button>
         </form>
 
-        <div className="modal-demo">
-          <p className="demo-title">Demo Credentials:</p>
-          <p className="demo-creds">customer@example.com / password123</p>
-        </div>
-
         <div className="modal-footer">
           <p>
             Don't have an account? 

@@ -40,11 +40,27 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
     const loadCart = async () => {
       console.log('🛒 CartContext: Loading cart, isLoggedIn:', isLoggedIn, 'user:', user?.id);
       
-      // Force clear localStorage for debugging
-      localStorage.removeItem('shopping-cart');
-      console.log('🛒 CartContext: Cleared localStorage shopping-cart');
-      
       if (isLoggedIn && user) {
+        // For logged-in users: transfer localStorage cart to database first, then sync
+        const savedCart = localStorage.getItem('shopping-cart');
+        if (savedCart) {
+          try {
+            const localCartItems = JSON.parse(savedCart);
+            console.log('🛒 CartContext: Found local cart to transfer:', localCartItems);
+            
+            // Transfer each item to database
+            for (const item of localCartItems) {
+              await addItemToDatabase(item);
+            }
+            
+            // Clear localStorage after successful transfer
+            localStorage.removeItem('shopping-cart');
+            console.log('🛒 CartContext: Transferred local cart to database and cleared localStorage');
+          } catch (error) {
+            console.error('Error transferring cart to database:', error);
+          }
+        }
+        
         // Load from database for logged-in users
         console.log('🛒 CartContext: Loading from database for user:', user.id);
         await syncCartWithDatabase();
@@ -81,6 +97,9 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
   useEffect(() => {
     if (isLoggedIn && user) {
       syncCartWithDatabase();
+    } else {
+      // When user logs out, clear cart items but keep localStorage for guest usage
+      setItems([]);
     }
   }, [isLoggedIn, user]);
 
@@ -97,6 +116,29 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
       }
     } catch (error) {
       console.error('Error syncing cart with database:', error);
+    }
+  };
+
+  // Helper function to add items from localStorage to database
+  const addItemToDatabase = async (item: CartItem) => {
+    if (!isLoggedIn || !user) return;
+
+    try {
+      await fetch('/api/cart', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userId: user.id,
+          productId: item.productId || item.id,
+          quantity: item.quantity,
+          size: item.size,
+          color: item.color
+        })
+      });
+    } catch (error) {
+      console.error('Error adding item to database:', error);
     }
   };
 
@@ -205,14 +247,9 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
     // Clear database if user is logged in
     if (isLoggedIn && user) {
       try {
-        // Note: You'd need to implement a clear cart endpoint
-        // For now, we'll remove items one by one
-        const currentItems = items;
-        for (const item of currentItems) {
-          await fetch(`/api/cart?userId=${user.id}&itemId=${item.id}`, {
-            method: 'DELETE'
-          });
-        }
+        await fetch(`/api/cart/clear?userId=${user.id}`, {
+          method: 'DELETE'
+        });
       } catch (error) {
         console.error('Error clearing cart in database:', error);
       }

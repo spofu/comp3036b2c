@@ -41,11 +41,7 @@ export const Footer = () => {
           <div className="footer-column">
             <h3 className="column-title-small">Shop</h3>
             <ul className="footer-links">
-              <li><Link href="/mens" className="footer-link">Men's Collection</Link></li>
-              <li><Link href="/womens" className="footer-link">Women's Collection</Link></li>
-              <li><Link href="/kids" className="footer-link">Kid's Collection</Link></li>
-              <li><Link href="/accessories" className="footer-link">Accessories</Link></li>
-              <li><Link href="/shop" className="footer-link">All Products</Link></li>
+              <li><Link href="/" className="footer-link">Shop our collection.</Link></li>
             </ul>
           </div>
 

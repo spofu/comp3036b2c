@@ -5,7 +5,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, white);
   padding: 20px;
   margin-top: 60px; /* Account for fixed navbar */
 }
@@ -83,27 +83,35 @@
 
 .password-input-wrapper {
   position: relative;
-  display: flex;
-  align-items: center;
+  display: block;
+}
+
+.password-input-wrapper .form-input {
+  padding-right: 48px; /* Add extra padding to make room for the toggle button */
 }
 
 .password-toggle {
   position: absolute;
   right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
   background: none;
   border: none;
   color: #6b7280;
   cursor: pointer;
-  padding: 4px;
+  padding: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 20px;
-  height: 20px;
+  width: 32px;
+  height: 32px;
+  border-radius: 4px;
+  transition: background-color 0.2s ease;
 }
 
 .password-toggle:hover {
   color: #374151;
+  background-color: #f3f4f6;
 }
 
 .password-toggle:disabled {
@@ -180,28 +188,6 @@
   flex-shrink: 0;
 }
 
-.demo-credentials {
-  margin-top: 24px;
-  padding: 16px;
-  background-color: #f8fafc;
-  border-radius: 8px;
-  border: 1px solid #e2e8f0;
-}
-
-.demo-credentials h3 {
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: #374151;
-  margin: 0 0 8px 0;
-}
-
-.demo-credentials p {
-  font-size: 0.75rem;
-  color: #6b7280;
-  margin: 4px 0;
-  font-family: monospace;
-}
-
 .login-footer {
   text-align: center;
   margin-top: 24px;
@@ -238,17 +224,5 @@
 
   .login-title {
     font-size: 1.5rem;
-  }
-
-  .demo-credentials {
-    padding: 12px;
-  }
-
-  .demo-credentials h3 {
-    font-size: 0.8rem;
-  }
-
-  .demo-credentials p {
-    font-size: 0.7rem;
   }
 }

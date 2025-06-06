@@ -1,50 +1,116 @@
 "use client"
 
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import { useAuth } from '../context/AuthContext'
 import './CSS/OrderSummary.css'
 
 export const OrderSummary = () => {
-  // Mock order data - in real app this would come from props or context
-  const orderData = {
-    orderNumber: 'ORD-' + Math.random().toString(36).substr(2, 9).toUpperCase(),
-    orderDate: new Date().toLocaleDateString(),
-    estimatedDelivery: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toLocaleDateString(),
-    items: [
-      {
-        id: '1',
-        name: 'Premium Cotton T-Shirt',
-        size: 'M',
-        color: 'Blue',
-        quantity: 2,
-        price: 29.99,
-        image: '/images/products/product-1.jpg'
-      },
-      {
-        id: '2',
-        name: 'Classic Denim Jeans',
-        size: '32',
-        color: 'Dark Blue',
-        quantity: 1,
-        price: 79.99,
-        image: '/images/products/product-2.jpg'
+  const router = useRouter()
+  const { user, isLoggedIn } = useAuth()
+  const [orderData, setOrderData] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
+
+  useEffect(() => {
+    if (!isLoggedIn) {
+      router.push('/login')
+      return
+    }
+
+    // Try to get order data from session storage first (from successful checkout)
+    const storedOrderData = sessionStorage.getItem('orderData')
+    if (storedOrderData) {
+      try {
+        const parsedData = JSON.parse(storedOrderData)
+        setOrderData(parsedData)
+        setLoading(false)
+        // Clear the session storage after loading
+        sessionStorage.removeItem('orderData')
+        return
+      } catch (error) {
+        console.error('Error parsing stored order data:', error)
       }
-    ],
-    shippingAddress: {
-      name: 'John Doe',
-      address: '123 Main Street',
-      city: 'New York',
-      state: 'NY',
-      zipCode: '10001'
-    },
-    paymentMethod: {
-      type: 'Credit Card',
-      last4: '1234'
-    },
-    subtotal: 139.97,
-    tax: 13.99,
-    shipping: 0,
-    total: 153.96
+    }
+
+    // If no stored data, try to get the most recent order from API
+    fetchLatestOrder()
+  }, [isLoggedIn, router, user])
+
+  const fetchLatestOrder = async () => {
+    if (!user) return
+
+    try {
+      const response = await fetch(`/api/checkout/orders?userId=${user.id}`)
+      const result = await response.json()
+
+      if (response.ok && result.orders && result.orders.length > 0) {
+        // Get the most recent order
+        const latestOrder = result.orders[0]
+        setOrderData({
+          id: latestOrder.id,
+          orderNumber: latestOrder.orderNumber,
+          orderDate: new Date(latestOrder.createdAt).toLocaleDateString(),
+          estimatedDelivery: new Date(latestOrder.estimatedDelivery).toLocaleDateString(),
+          status: latestOrder.status,
+          items: latestOrder.items,
+          shippingAddress: {
+            name: user.name,
+            address: latestOrder.shippingAddress.street,
+            apartment: latestOrder.shippingAddress.apartment,
+            city: latestOrder.shippingAddress.city,
+            state: latestOrder.shippingAddress.state,
+            zipCode: latestOrder.shippingAddress.zipCode,
+            country: latestOrder.shippingAddress.country
+          },
+          paymentMethod: {
+            type: 'Credit Card',
+            last4: '****' // Don't show real card details
+          },
+          subtotal: parseFloat(latestOrder.total) - (parseFloat(latestOrder.total) * 0.1), // Subtract tax
+          tax: parseFloat(latestOrder.total) * 0.1,
+          shipping: 0,
+          total: parseFloat(latestOrder.total)
+        })
+      } else {
+        setError('No recent orders found')
+      }
+    } catch (error) {
+      console.error('Error fetching order:', error)
+      setError('Failed to load order details')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  if (!isLoggedIn) {
+    return null
+  }
+
+  if (loading) {
+    return (
+      <div className="order-summary-container">
+        <div className="loading-state">
+          <div className="loading-spinner"></div>
+          <p>Loading your order details...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (error || !orderData) {
+    return (
+      <div className="order-summary-container">
+        <div className="error-state">
+          <h1>Order Not Found</h1>
+          <p>{error || 'We couldn\'t find your order details.'}</p>
+          <Link href="/" className="btn-primary">
+            Continue Shopping
+          </Link>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -121,7 +187,13 @@ export const OrderSummary = () => {
             <div className="address">
               <p>{orderData.shippingAddress.name}</p>
               <p>{orderData.shippingAddress.address}</p>
+              {orderData.shippingAddress.apartment && (
+                <p>{orderData.shippingAddress.apartment}</p>
+              )}
               <p>{orderData.shippingAddress.city}, {orderData.shippingAddress.state} {orderData.shippingAddress.zipCode}</p>
+              {orderData.shippingAddress.country && (
+                <p>{orderData.shippingAddress.country}</p>
+              )}
             </div>
           </div>
           <div className="payment-info">
