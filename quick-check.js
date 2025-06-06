@@ -1,1 +1,0 @@
-console.log('Script starting...'); const { PrismaClient } = require('@prisma/client'); const prisma = new PrismaClient(); prisma.user.count().then(count => { console.log('User count:', count); return prisma.user.findMany(); }).then(users => { console.log('Users:', users); }).catch(err => { console.error('Error:', err); }).finally(() => { prisma.$disconnect(); });
