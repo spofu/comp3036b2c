@@ -33,6 +33,41 @@ body {
   min-height: 100vh;
 }
 
+/* Admin Dashboard Styles */
+.admin-container {
+  display: grid;
+  grid-template-columns: 250px 1fr;
+  min-height: 100vh;
+}
+
+.admin-sidebar {
+  background: #1f2937;
+  color: white;
+}
+
+.admin-main {
+  background: #f9fafb;
+  min-height: 100vh;
+}
+
+.stat-card {
+  background: white;
+  padding: 2rem;
+  border-radius: 0.75rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+/* Responsive admin layout */
+@media (max-width: 768px) {
+  .admin-container {
+    grid-template-columns: 1fr;
+  }
+  
+  .admin-sidebar {
+    display: none;
+  }
+}
+
 
 
 

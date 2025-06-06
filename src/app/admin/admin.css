@@ -1,0 +1,473 @@
+/* Admin Dashboard Styles */
+
+.admin-container {
+  display: grid;
+  grid-template-columns: 250px 1fr;
+  min-height: 100vh;
+}
+
+.admin-sidebar {
+  background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
+  color: white;
+  box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.admin-main {
+  background: #f8fafc;
+  min-height: 100vh;
+  overflow-x: auto;
+}
+
+/* Admin Edit Page Styles */
+.admin-edit-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+  background: #f8fafc;
+}
+
+.admin-edit-header {
+  background: white;
+  border-radius: 0.75rem;
+  padding: 2rem;
+  margin-bottom: 2rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e2e8f0;
+}
+
+.admin-edit-title {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin-bottom: 0.5rem;
+}
+
+.admin-edit-subtitle {
+  color: #64748b;
+  font-size: 1rem;
+}
+
+/* Product Information Section */
+.product-info-section {
+  background: white;
+  border-radius: 0.75rem;
+  padding: 2rem;
+  margin-bottom: 2rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e2e8f0;
+}
+
+.product-info-grid {
+  display: grid;
+  grid-template-columns: 200px 1fr;
+  gap: 2rem;
+  align-items: start;
+}
+
+.product-image {
+  width: 200px;
+  height: 200px;
+  object-fit: cover;
+  border-radius: 0.5rem;
+  border: 1px solid #e2e8f0;
+  background: #f1f5f9;
+}
+
+.product-details h2 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #1e293b;
+  margin-bottom: 1rem;
+}
+
+.product-detail-item {
+  display: flex;
+  margin-bottom: 0.75rem;
+}
+
+.product-detail-label {
+  font-weight: 500;
+  color: #475569;
+  min-width: 100px;
+  margin-right: 1rem;
+}
+
+.product-detail-value {
+  color: #1e293b;
+  flex: 1;
+}
+
+.price-value {
+  color: #059669;
+  font-weight: 600;
+  font-size: 1.125rem;
+}
+
+.stock-value {
+  color: #dc2626;
+  font-weight: 600;
+}
+
+.stock-value.in-stock {
+  color: #059669;
+}
+
+/* Stock Management Section */
+.stock-section {
+  background: white;
+  border-radius: 0.75rem;
+  padding: 2rem;
+  margin-bottom: 2rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e2e8f0;
+}
+
+.section-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #1e293b;
+  margin-bottom: 1.5rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 2px solid #e2e8f0;
+}
+
+.stock-form {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.stock-input {
+  padding: 0.75rem;
+  border: 2px solid #e2e8f0;
+  border-radius: 0.5rem;
+  font-size: 1rem;
+  width: 120px;
+  transition: border-color 0.2s ease;
+}
+
+.stock-input:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.stock-label {
+  font-weight: 500;
+  color: #475569;
+  min-width: 80px;
+}
+
+.update-button {
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.5rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(59, 130, 246, 0.2);
+}
+
+.update-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+.update-button:disabled {
+  background: #9ca3af;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* Variants Section */
+.variants-section {
+  background: white;
+  border-radius: 0.75rem;
+  padding: 2rem;
+  margin-bottom: 2rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e2e8f0;
+}
+
+.add-variant-form {
+  background: #f8fafc;
+  border: 2px dashed #cbd5e1;
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.add-variant-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #475569;
+  margin-bottom: 1rem;
+}
+
+.variant-form-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.variant-input {
+  padding: 0.75rem;
+  border: 2px solid #e2e8f0;
+  border-radius: 0.5rem;
+  font-size: 1rem;
+  min-width: 120px;
+  transition: border-color 0.2s ease;
+}
+
+.variant-input:focus {
+  outline: none;
+  border-color: #059669;
+  box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.1);
+}
+
+.add-button {
+  background: linear-gradient(135deg, #059669 0%, #047857 100%);
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.5rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(5, 150, 105, 0.2);
+}
+
+.add-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(5, 150, 105, 0.3);
+}
+
+.add-button:disabled {
+  background: #9ca3af;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* Variant List */
+.variant-list {
+  display: grid;
+  gap: 1rem;
+}
+
+.variant-item {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.5rem;
+  padding: 1.5rem;
+  transition: all 0.2s ease;
+}
+
+.variant-item:hover {
+  border-color: #cbd5e1;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.variant-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.variant-name {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.variant-stock {
+  color: #dc2626;
+  font-weight: 500;
+}
+
+.variant-stock.in-stock {
+  color: #059669;
+}
+
+.variant-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.variant-stock-form {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.variant-stock-input {
+  padding: 0.5rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  width: 80px;
+  transition: border-color 0.2s ease;
+}
+
+.variant-stock-input:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+}
+
+.small-button {
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.small-update-button {
+  background: #3b82f6;
+  color: white;
+}
+
+.small-update-button:hover {
+  background: #2563eb;
+  transform: translateY(-1px);
+}
+
+.small-update-button:disabled {
+  background: #9ca3af;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.delete-button {
+  background: #dc2626;
+  color: white;
+}
+
+.delete-button:hover {
+  background: #b91c1c;
+  transform: translateY(-1px);
+}
+
+/* Success and Error Messages */
+.success-message {
+  background: #dcfce7;
+  border: 1px solid #bbf7d0;
+  color: #166534;
+  padding: 1rem;
+  border-radius: 0.5rem;
+  margin-bottom: 1rem;
+  font-weight: 500;
+}
+
+.error-message {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #dc2626;
+  padding: 1rem;
+  border-radius: 0.5rem;
+  margin-bottom: 1rem;
+  font-weight: 500;
+}
+
+.loading-spinner {
+  display: inline-block;
+  width: 1rem;
+  height: 1rem;
+  border: 2px solid #f3f4f6;
+  border-radius: 50%;
+  border-top-color: #3b82f6;
+  animation: spin 1s ease-in-out infinite;
+  margin-right: 0.5rem;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .admin-container {
+    grid-template-columns: 1fr;
+  }
+  
+  .admin-sidebar {
+    display: none;
+  }
+  
+  .product-info-grid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+  
+  .product-image {
+    width: 100%;
+    max-width: 300px;
+    margin: 0 auto;
+  }
+}
+
+@media (max-width: 768px) {
+  .admin-edit-container {
+    padding: 1rem;
+  }
+  
+  .admin-edit-header {
+    padding: 1.5rem;
+  }
+  
+  .admin-edit-title {
+    font-size: 1.5rem;
+  }
+  
+  .product-info-section,
+  .stock-section,
+  .variants-section {
+    padding: 1.5rem;
+  }
+  
+  .variant-form-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .variant-input {
+    min-width: auto;
+    width: 100%;
+  }
+  
+  .variant-actions {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+  
+  .variant-stock-form {
+    justify-content: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .stock-form {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .stock-input {
+    width: 100%;
+  }
+  
+  .variant-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+}

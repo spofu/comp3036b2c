@@ -222,6 +222,27 @@
   transform: translateY(-1px);
 }
 
+.admin-button {
+  padding: 8px 16px;
+  background-color: #059669;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.admin-button:hover {
+  background-color: #047857;
+  transform: translateY(-1px);
+}
+
 @media (max-width: 768px) {
   .auth-buttons {
     gap: 8px;
@@ -229,7 +250,8 @@
 
   .login-button,
   .signup-button,
-  .logout-button {
+  .logout-button,
+  .admin-button {
     padding: 6px 12px;
     font-size: 0.8rem;
   }

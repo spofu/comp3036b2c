@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcryptjs';
+import { generateJWT } from '../middleware';
 
 const prisma = new PrismaClient();
 
@@ -40,11 +41,15 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Generate JWT token
+    const token = generateJWT(user.id);
+
     // Remove sensitive data from response
     const { hashedPassword: _, ...userWithoutPassword } = user;
 
     return NextResponse.json({
       message: 'Login successful',
+      token,
       user: userWithoutPassword
     }, { status: 200 });
 
