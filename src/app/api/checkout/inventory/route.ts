@@ -18,7 +18,7 @@ export async function POST(request: NextRequest) {
     const inventoryChecks = [];
 
     for (const item of items) {
-      const { productId, quantity, size, color } = item;
+      const { productId, productVariantId, quantity } = item;
 
       if (!productId || !quantity) {
         return NextResponse.json({ 
@@ -29,8 +29,7 @@ export async function POST(request: NextRequest) {
       const product = await prisma.product.findUnique({
         where: { id: productId },
         include: {
-          sizes: true,
-          colors: true
+          variants: true
         }
       });
 
@@ -45,57 +44,48 @@ export async function POST(request: NextRequest) {
         continue;
       }
 
-      let availableQuantity = product.stock;
+      let availableQuantity = 0;
       let available = true;
       let error = null;
+      let variant = null;
+      let size = null;
+      let color = null;
 
-      // Check main product stock
-      if (product.stock < quantity) {
-        available = false;
-        error = `Insufficient stock. Available: ${product.stock}, Requested: ${quantity}`;
-      }
-
-      // Check size-specific stock if size is specified
-      if (available && size && size !== 'One Size') {
-        const sizeStock = product.sizes.find(s => s.size === size);
-        if (!sizeStock) {
+      // If productVariantId is specified, check specific variant stock
+      if (productVariantId) {
+        variant = product.variants.find(v => v.id === productVariantId);
+        if (!variant) {
           available = false;
-          error = `Size ${size} not available`;
+          error = 'Product variant not found';
           availableQuantity = 0;
-        } else if (sizeStock.stock < quantity) {
-          available = false;
-          error = `Insufficient stock for size ${size}. Available: ${sizeStock.stock}, Requested: ${quantity}`;
-          availableQuantity = sizeStock.stock;
         } else {
-          availableQuantity = Math.min(availableQuantity, sizeStock.stock);
+          availableQuantity = variant.stock;
+          size = variant.size;
+          color = variant.color;
+          if (variant.stock < quantity) {
+            available = false;
+            error = `Insufficient stock for variant. Available: ${variant.stock}, Requested: ${quantity}`;
+          }
         }
-      }
-
-      // Check color-specific stock if color is specified
-      if (available && color && color !== 'Default') {
-        const colorStock = product.colors.find(c => c.color === color);
-        if (!colorStock) {
+      } else {
+        // If no specific variant, check total available stock across all variants
+        availableQuantity = product.variants.reduce((total, v) => total + v.stock, 0);
+        if (availableQuantity < quantity) {
           available = false;
-          error = `Color ${color} not available`;
-          availableQuantity = 0;
-        } else if (colorStock.stock < quantity) {
-          available = false;
-          error = `Insufficient stock for color ${color}. Available: ${colorStock.stock}, Requested: ${quantity}`;
-          availableQuantity = Math.min(availableQuantity, colorStock.stock);
-        } else {
-          availableQuantity = Math.min(availableQuantity, colorStock.stock);
+          error = `Insufficient total stock. Available: ${availableQuantity}, Requested: ${quantity}`;
         }
       }
 
       inventoryChecks.push({
         productId,
+        productVariantId: productVariantId || null,
         productName: product.name,
         available,
         error,
         requestedQuantity: quantity,
         availableQuantity,
-        size: size || null,
-        color: color || null
+        size,
+        color
       });
     }
 
@@ -137,8 +127,7 @@ export async function GET(request: NextRequest) {
     const product = await prisma.product.findUnique({
       where: { id: productId },
       include: {
-        sizes: true,
-        colors: true
+        variants: true
       }
     });
 
@@ -148,17 +137,44 @@ export async function GET(request: NextRequest) {
       }, { status: 404 });
     }
 
+    // Calculate total stock from all variants
+    const totalStock = product.variants.reduce((total, variant) => total + variant.stock, 0);
+
+    // Get unique sizes and colors with their available stock
+    const sizeStockMap = new Map();
+    const colorStockMap = new Map();
+
+    product.variants.forEach(variant => {
+      // Aggregate stock by size
+      if (variant.size) {
+        const currentSizeStock = sizeStockMap.get(variant.size) || 0;
+        sizeStockMap.set(variant.size, currentSizeStock + variant.stock);
+      }
+
+      // Aggregate stock by color
+      if (variant.color) {
+        const currentColorStock = colorStockMap.get(variant.color) || 0;
+        colorStockMap.set(variant.color, currentColorStock + variant.stock);
+      }
+    });
+
     return NextResponse.json({
       productId: product.id,
       productName: product.name,
-      totalStock: product.stock,
-      sizes: product.sizes.map(size => ({
-        size: size.size,
-        stock: size.stock
+      totalStock,
+      variants: product.variants.map(variant => ({
+        id: variant.id,
+        size: variant.size,
+        color: variant.color,
+        stock: variant.stock
       })),
-      colors: product.colors.map(color => ({
-        color: color.color,
-        stock: color.stock
+      sizes: Array.from(sizeStockMap.entries()).map(([size, stock]) => ({
+        size,
+        stock
+      })),
+      colors: Array.from(colorStockMap.entries()).map(([color, stock]) => ({
+        color,
+        stock
       }))
     });
 

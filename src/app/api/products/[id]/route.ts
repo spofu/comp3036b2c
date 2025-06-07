@@ -21,13 +21,9 @@ export async function GET(
         where: { id: value },
         include: {
           category: true,
-          sizes: {
-            where: { stock: { gt: 0 } }, // Only include sizes with stock > 0
-            orderBy: { size: 'asc' }
-          },
-          colors: {
-            where: { stock: { gt: 0 } }, // Only include colors with stock > 0
-            orderBy: { color: 'asc' }
+          variants: {
+            where: { stock: { gt: 0 } }, // Only include variants with stock > 0
+            orderBy: [{ size: 'asc' }, { color: 'asc' }]
           },
           reviews: {
             include: {
@@ -47,13 +43,9 @@ export async function GET(
         where: { slug: value },
         include: {
           category: true,
-          sizes: {
-            where: { stock: { gt: 0 } }, // Only include sizes with stock > 0
-            orderBy: { size: 'asc' }
-          },
-          colors: {
-            where: { stock: { gt: 0 } }, // Only include colors with stock > 0
-            orderBy: { color: 'asc' }
+          variants: {
+            where: { stock: { gt: 0 } }, // Only include variants with stock > 0
+            orderBy: [{ size: 'asc' }, { color: 'asc' }]
           },
           reviews: {
             include: {
@@ -80,6 +72,9 @@ export async function GET(
       : 0;
 
     // Transform product to match the expected format
+    const uniqueSizes = [...new Set(product.variants.map(v => v.size).filter(Boolean))];
+    const uniqueColors = [...new Set(product.variants.map(v => v.color).filter(Boolean))];
+    
     const formattedProduct = {
       id: product.id,
       name: product.name,
@@ -88,13 +83,13 @@ export async function GET(
       description: product.description,
       category: product.category?.name || 'Uncategorized',
       stock: product.stock,
-      sizes: product.sizes.map(size => ({
-        size: size.size,
-        inStock: size.stock > 0
+      sizes: uniqueSizes.map(size => ({
+        size: size,
+        inStock: product.variants.some(v => v.size === size && v.stock > 0)
       })),
-      colors: product.colors.map(color => ({
-        color: color.color,
-        inStock: color.stock > 0
+      colors: uniqueColors.map(color => ({
+        color: color,
+        inStock: product.variants.some(v => v.color === color && v.stock > 0)
       })),
       images: [
         product.imageUrl || '/images/products/default.jpg',

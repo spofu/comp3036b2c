@@ -44,13 +44,12 @@ export async function GET(request: NextRequest) {
       },
       include: {
         category: true,
-        sizes: { 
+        variants: { 
           where: { stock: { gt: 0 } },
-          orderBy: { size: 'asc' }
-        },
-        colors: { 
-          where: { stock: { gt: 0 } },
-          orderBy: { color: 'asc' }
+          orderBy: [
+            { size: 'asc' },
+            { color: 'asc' }
+          ]
         }
       },
       take: parseInt(limit),
@@ -60,17 +59,32 @@ export async function GET(request: NextRequest) {
     });
 
     // Transform products to match the search result format
-    const searchResults = products.map(product => ({
-      id: product.id.toString(),
-      name: product.name,
-      category: product.category?.name || 'Uncategorized',
-      price: Number(product.price),
-      imageUrl: product.imageUrl || '/images/products/default.jpg',
-      description: product.description,
-      stock: product.stock,
-      sizes: product.sizes?.map(s => ({ size: s.size, inStock: s.stock > 0 })) || [],
-      colors: product.colors?.map(c => ({ color: c.color, inStock: c.stock > 0 })) || []
-    }));
+    const searchResults = products.map(product => {
+      // Extract unique sizes and colors from variants
+      const uniqueSizes = [...new Set(product.variants.map(v => v.size).filter(Boolean))];
+      const uniqueColors = [...new Set(product.variants.map(v => v.color).filter(Boolean))];
+      
+      // Calculate total stock from all variants
+      const totalStock = product.variants.reduce((sum, variant) => sum + variant.stock, 0);
+
+      return {
+        id: product.id.toString(),
+        name: product.name,
+        category: product.category?.name || 'Uncategorized',
+        price: Number(product.price),
+        imageUrl: product.imageUrl || '/images/products/default.jpg',
+        description: product.description,
+        stock: totalStock,
+        sizes: uniqueSizes.map(size => ({ 
+          size, 
+          inStock: product.variants.some(v => v.size === size && v.stock > 0) 
+        })),
+        colors: uniqueColors.map(color => ({ 
+          color, 
+          inStock: product.variants.some(v => v.color === color && v.stock > 0) 
+        }))
+      };
+    });
 
     return NextResponse.json({ 
       products: searchResults,

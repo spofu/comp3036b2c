@@ -24,24 +24,45 @@ model User {
 }
 
 model Product {
-  id             String           @id @default(uuid())
-  name           String
-  description    String
-  price          Decimal          @db.Decimal(10, 2)
-  stock          Int              @default(0)
-  imageUrl       String
-  createdAt      DateTime         @default(now())
-  updatedAt      DateTime         @updatedAt
-  categoryId     String
-  slug           String?          @unique
-  cartItems      CartItem[]
-  orderItems     OrderItem[]
-  category       Category         @relation(fields: [categoryId], references: [id])
-  ProductVariant ProductVariant[]
-  reviews        Review[]
+  id          String           @id @default(uuid())
+  name        String
+  description String
+  price       Decimal          @db.Decimal(10, 2)
+  stock       Int              @default(0)
+  imageUrl    String
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  categoryId  String
+  slug        String?          @unique
+  cartItems   CartItem[]
+  orderItems  OrderItem[]
+  category    Category         @relation(fields: [categoryId], references: [id])
+  variants    ProductVariant[]
+  reviews     Review[]
 
   @@index([categoryId])
   @@index([slug])
+}
+
+model ProductVariant {
+  id         String      @id @default(uuid())
+  productId  String
+  sku        String?     @unique
+  size       String?
+  color      String?
+  material   String?
+  price      Decimal?    @db.Decimal(10, 2)
+  stock      Int         @default(0)
+  imageUrl   String?
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+  cartItems  CartItem[]
+  orderItems OrderItem[]
+  product    Product     @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([productId, size, color])
+  @@index([productId])
+  @@index([sku])
 }
 
 model CartItem {
@@ -53,7 +74,7 @@ model CartItem {
   updatedAt        DateTime        @updatedAt
   productVariantId String?
   product          Product         @relation(fields: [productId], references: [id], onDelete: Cascade)
-  ProductVariant   ProductVariant? @relation(fields: [productVariantId], references: [id], onDelete: Cascade)
+  productVariant   ProductVariant? @relation(fields: [productVariantId], references: [id], onDelete: Cascade)
   user             User            @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, productId, productVariantId])
@@ -75,8 +96,8 @@ model Order {
   total     Decimal     @db.Decimal(10, 2)
   status    OrderStatus @default(PENDING)
   createdAt DateTime    @default(now())
-  addressId String
-  address   Address     @relation(fields: [addressId], references: [id])
+  addressId String?
+  address   Address?    @relation(fields: [addressId], references: [id])
   user      User        @relation(fields: [userId], references: [id], onDelete: Cascade)
   items     OrderItem[]
 
@@ -93,7 +114,7 @@ model OrderItem {
   productVariantId String?
   order            Order           @relation(fields: [orderId], references: [id], onDelete: Cascade)
   product          Product         @relation(fields: [productId], references: [id])
-  ProductVariant   ProductVariant? @relation(fields: [productVariantId], references: [id], onDelete: Restrict)
+  productVariant   ProductVariant? @relation(fields: [productVariantId], references: [id], onDelete: Restrict)
 
   @@unique([orderId, productId, productVariantId])
   @@index([orderId])
@@ -129,27 +150,6 @@ model Address {
   orders    Order[]
 
   @@index([userId])
-}
-
-model ProductVariant {
-  id        String      @id
-  productId String
-  sku       String?     @unique
-  size      String?
-  color     String?
-  material  String?
-  price     Decimal?    @db.Decimal(10, 2)
-  stock     Int         @default(0)
-  imageUrl  String?
-  createdAt DateTime    @default(now())
-  updatedAt DateTime
-  CartItem  CartItem[]
-  OrderItem OrderItem[]
-  Product   Product     @relation(fields: [productId], references: [id], onDelete: Cascade)
-
-  @@unique([productId, size, color])
-  @@index([productId])
-  @@index([sku])
 }
 
 enum Role {

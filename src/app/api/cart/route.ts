@@ -17,7 +17,8 @@ export async function GET(request: NextRequest) {
     const cartItems = await prisma.cartItem.findMany({
       where: { userId },
       include: {
-        product: true
+        product: true,
+        productVariant: true
       },
       orderBy: { createdAt: 'desc' }
     });
@@ -28,9 +29,10 @@ export async function GET(request: NextRequest) {
       price: item.product.price,
       image: item.product.imageUrl || '/images/products/default.jpg',
       quantity: item.quantity,
-      color: item.color || 'Default',
-      size: item.size || 'One Size',
-      productId: item.productId
+      color: item.productVariant?.color || 'Default',
+      size: item.productVariant?.size || 'One Size',
+      productId: item.productId,
+      productVariantId: item.productVariantId
     }));
 
     return NextResponse.json({ cartItems: formattedCartItems });
@@ -44,7 +46,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { userId, productId, quantity = 1, size, color } = body;
+    const { userId, productId, quantity = 1, size, color, productVariantId } = body;
 
     if (!userId || !productId) {
       return NextResponse.json({ error: 'User ID and Product ID are required' }, { status: 400 });
@@ -59,15 +61,30 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Product not found' }, { status: 404 });
     }
 
-    // Check if item already exists in cart with same size/color combination
-    const existingCartItem = await prisma.cartItem.findUnique({
-      where: {
-        userId_productId_size_color: {
-          userId,
+    // If productVariantId is provided, use it; otherwise find or create variant
+    let variantId = productVariantId;
+    
+    if (!variantId && (size || color)) {
+      // Try to find existing variant with matching size/color
+      const existingVariant = await prisma.productVariant.findFirst({
+        where: {
           productId,
           size: size || null,
           color: color || null
         }
+      });
+      
+      if (existingVariant) {
+        variantId = existingVariant.id;
+      }
+    }
+
+    // Check if item already exists in cart with same variant combination
+    const existingCartItem = await prisma.cartItem.findFirst({
+      where: {
+        userId,
+        productId,
+        productVariantId: variantId || null
       }
     });
 
@@ -81,7 +98,10 @@ export async function POST(request: NextRequest) {
           quantity: existingCartItem.quantity + quantity,
           updatedAt: new Date()
         },
-        include: { product: true }
+        include: { 
+          product: true,
+          productVariant: true
+        }
       });
     } else {
       // Create new cart item
@@ -90,10 +110,12 @@ export async function POST(request: NextRequest) {
           userId,
           productId,
           quantity,
-          size,
-          color
+          productVariantId: variantId
         },
-        include: { product: true }
+        include: { 
+          product: true,
+          productVariant: true
+        }
       });
     }
 
@@ -103,9 +125,10 @@ export async function POST(request: NextRequest) {
       price: cartItem.product.price,
       image: cartItem.product.imageUrl || '/images/products/default.jpg',
       quantity: cartItem.quantity,
-      size: cartItem.size,
-      color: cartItem.color,
-      productId: cartItem.productId
+      size: cartItem.productVariant?.size || 'One Size',
+      color: cartItem.productVariant?.color || 'Default',
+      productId: cartItem.productId,
+      productVariantId: cartItem.productVariantId
     };
 
     return NextResponse.json({ 
@@ -138,7 +161,10 @@ export async function PUT(request: NextRequest) {
         quantity,
         updatedAt: new Date()
       },
-      include: { product: true }
+      include: { 
+        product: true,
+        productVariant: true
+      }
     });
 
     if (!cartItem) {
@@ -151,9 +177,10 @@ export async function PUT(request: NextRequest) {
       price: cartItem.product.price,
       image: cartItem.product.imageUrl || '/images/products/default.jpg',
       quantity: cartItem.quantity,
-      size: cartItem.size,
-      color: cartItem.color,
-      productId: cartItem.productId
+      size: cartItem.productVariant?.size || 'One Size',
+      color: cartItem.productVariant?.color || 'Default',
+      productId: cartItem.productId,
+      productVariantId: cartItem.productVariantId
     };
 
     return NextResponse.json({ 

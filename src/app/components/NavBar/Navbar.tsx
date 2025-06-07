@@ -62,6 +62,9 @@ export const Navbar = () => {
           ) : isLoggedIn && user ? (
             <>
               <span className="user-greeting">Hello, {user.name}</span>
+              <Link href="/login?tab=orders" className="orders-link">
+                Order History
+              </Link>
               {user.role === 'ADMIN' && (
                 <Link href="/admin" className="admin-button">
                   Admin
