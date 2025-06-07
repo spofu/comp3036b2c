@@ -199,8 +199,39 @@ export const Checkout = () => {
       // Clear cart and redirect to order summary
       await clearCart()
       
-      // Store order info for order summary page
-      sessionStorage.setItem('orderData', JSON.stringify(result.order))
+      // Store order info for order summary page with cart items included
+      const orderDataForStorage = {
+        ...result.order,
+        items: items.map(item => ({
+          id: item.id,
+          name: item.name,
+          price: item.price,
+          quantity: item.quantity,
+          size: item.size,
+          color: item.color,
+          image: item.image || '/images/products/default.jpg'
+        })),
+        shippingAddress: {
+          name: user.name,
+          address: formData.address,
+          apartment: formData.apartment,
+          city: formData.city,
+          state: formData.state,
+          zipCode: formData.zipCode,
+          country: formData.country
+        },
+        paymentMethod: {
+          type: 'Credit Card',
+          last4: '****'
+        },
+        subtotal: getTotalPrice(),
+        tax: getTotalPrice() * 0.1,
+        shipping: getTotalPrice() > 50 ? 0 : 9.99,
+        total: getTotalPrice() + (getTotalPrice() * 0.1) + (getTotalPrice() > 50 ? 0 : 9.99),
+        orderDate: new Date().toLocaleDateString(),
+        estimatedDelivery: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toLocaleDateString()
+      }
+      sessionStorage.setItem('orderData', JSON.stringify(orderDataForStorage))
       router.push('/order-summary')
 
     } catch (error) {

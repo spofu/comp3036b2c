@@ -47,14 +47,14 @@ export async function GET(request: NextRequest) {
         quantity: item.quantity,
         image: item.product.imageUrl || '/images/products/default.jpg'
       })),
-      shippingAddress: {
+      shippingAddress: order.address ? {
         street: order.address.street,
         apartment: order.address.apartment,
         city: order.address.city,
         state: order.address.state,
         zipCode: order.address.zipCode,
         country: order.address.country
-      }
+      } : null
     }));
 
     console.log('[orders GET] Responding with formatted orders');

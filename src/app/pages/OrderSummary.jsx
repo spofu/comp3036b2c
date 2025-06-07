@@ -24,6 +24,10 @@ export const OrderSummary = () => {
     if (storedOrderData) {
       try {
         const parsedData = JSON.parse(storedOrderData)
+        // Ensure items array exists
+        if (parsedData && !parsedData.items) {
+          parsedData.items = []
+        }
         setOrderData(parsedData)
         setLoading(false)
         // Clear the session storage after loading
@@ -54,15 +58,15 @@ export const OrderSummary = () => {
           orderDate: new Date(latestOrder.createdAt).toLocaleDateString(),
           estimatedDelivery: new Date(latestOrder.estimatedDelivery).toLocaleDateString(),
           status: latestOrder.status,
-          items: latestOrder.items,
+          items: latestOrder.items || [],
           shippingAddress: {
             name: user.name,
-            address: latestOrder.shippingAddress.street,
-            apartment: latestOrder.shippingAddress.apartment,
-            city: latestOrder.shippingAddress.city,
-            state: latestOrder.shippingAddress.state,
-            zipCode: latestOrder.shippingAddress.zipCode,
-            country: latestOrder.shippingAddress.country
+            address: latestOrder.shippingAddress?.street || '',
+            apartment: latestOrder.shippingAddress?.apartment || '',
+            city: latestOrder.shippingAddress?.city || '',
+            state: latestOrder.shippingAddress?.state || '',
+            zipCode: latestOrder.shippingAddress?.zipCode || '',
+            country: latestOrder.shippingAddress?.country || ''
           },
           paymentMethod: {
             type: 'Credit Card',
@@ -141,24 +145,30 @@ export const OrderSummary = () => {
 
         <div className="order-items">
           <h3>Order Items</h3>
-          {orderData.items.map((item) => (
-            <div key={item.id} className="order-item">
-              <div className="item-image">
-                <img src={item.image} alt={item.name} />
-              </div>
-              <div className="item-details">
-                <h4>{item.name}</h4>
-                <div className="item-variants">
-                  {item.size && <span>Size: {item.size}</span>}
-                  {item.color && <span>Color: {item.color}</span>}
+          {orderData.items && orderData.items.length > 0 ? (
+            orderData.items.map((item) => (
+              <div key={item.id} className="order-item">
+                <div className="item-image">
+                  <img src={item.image || '/images/products/default.jpg'} alt={item.name} />
                 </div>
-                <div className="item-quantity">Quantity: {item.quantity}</div>
+                <div className="item-details">
+                  <h4>{item.name}</h4>
+                  <div className="item-variants">
+                    {item.size && <span>Size: {item.size}</span>}
+                    {item.color && <span>Color: {item.color}</span>}
+                  </div>
+                  <div className="item-quantity">Quantity: {item.quantity}</div>
+                </div>
+                <div className="item-price">
+                  ${(item.price * item.quantity).toFixed(2)}
+                </div>
               </div>
-              <div className="item-price">
-                ${(item.price * item.quantity).toFixed(2)}
-              </div>
+            ))
+          ) : (
+            <div className="no-items">
+              <p>No items found in this order.</p>
             </div>
-          ))}
+          )}
         </div>
 
         <div className="order-summary">
@@ -185,21 +195,31 @@ export const OrderSummary = () => {
           <div className="shipping-info">
             <h4>Shipping Address</h4>
             <div className="address">
-              <p>{orderData.shippingAddress.name}</p>
-              <p>{orderData.shippingAddress.address}</p>
-              {orderData.shippingAddress.apartment && (
-                <p>{orderData.shippingAddress.apartment}</p>
-              )}
-              <p>{orderData.shippingAddress.city}, {orderData.shippingAddress.state} {orderData.shippingAddress.zipCode}</p>
-              {orderData.shippingAddress.country && (
-                <p>{orderData.shippingAddress.country}</p>
+              {orderData.shippingAddress ? (
+                <>
+                  <p>{orderData.shippingAddress.name}</p>
+                  <p>{orderData.shippingAddress.address}</p>
+                  {orderData.shippingAddress.apartment && (
+                    <p>{orderData.shippingAddress.apartment}</p>
+                  )}
+                  <p>{orderData.shippingAddress.city}, {orderData.shippingAddress.state} {orderData.shippingAddress.zipCode}</p>
+                  {orderData.shippingAddress.country && (
+                    <p>{orderData.shippingAddress.country}</p>
+                  )}
+                </>
+              ) : (
+                <p>No shipping address available</p>
               )}
             </div>
           </div>
           <div className="payment-info">
             <h4>Payment Method</h4>
             <div className="payment-method">
-              <p>{orderData.paymentMethod.type} ending in {orderData.paymentMethod.last4}</p>
+              {orderData.paymentMethod ? (
+                <p>{orderData.paymentMethod.type} ending in {orderData.paymentMethod.last4}</p>
+              ) : (
+                <p>Payment method not available</p>
+              )}
             </div>
           </div>
         </div>

@@ -220,7 +220,7 @@ export async function GET(request: NextRequest) {
         total: parseFloat(item.price.toString()) * item.quantity,
         image: item.product.imageUrl || '/images/products/default.jpg'
       })),
-      shippingAddress: {
+      shippingAddress: order.address ? {
         name: order.user.name,
         street: order.address.street,
         apartment: order.address.apartment,
@@ -228,7 +228,7 @@ export async function GET(request: NextRequest) {
         state: order.address.state,
         zipCode: order.address.zipCode,
         country: order.address.country
-      },
+      } : null,
       customer: {
         name: order.user.name,
         email: order.user.email
