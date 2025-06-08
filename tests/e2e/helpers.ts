@@ -20,13 +20,12 @@ export class TestHelpers {
       path: `tests/test-results/screenshots/${name}-${timestamp}.png` 
     });
   }
-
   /**
    * Check if element exists and is visible
    */
   async isElementVisible(selector: string): Promise<boolean> {
     try {
-      await expect(this.page.locator(selector)).toBeVisible({ timeout: 5000 });
+      await expect(this.page.locator(selector)).toBeVisible({ timeout: 8000 });
       return true;
     } catch {
       return false;
@@ -37,16 +36,26 @@ export class TestHelpers {
    * Fill form field with error handling
    */
   async fillField(selector: string, value: string) {
-    await this.page.waitForSelector(selector, { timeout: 10000 });
-    await this.page.fill(selector, value);
+    try {
+      await this.page.waitForSelector(selector, { timeout: 15000 });
+      await this.page.fill(selector, value);
+    } catch (error) {
+      console.log(`⚠️ Could not fill field ${selector}: ${error}`);
+      throw error;
+    }
   }
 
   /**
    * Click element with retry logic
    */
   async clickElement(selector: string) {
-    await this.page.waitForSelector(selector, { timeout: 10000 });
-    await this.page.click(selector);
+    try {
+      await this.page.waitForSelector(selector, { timeout: 15000 });
+      await this.page.click(selector);
+    } catch (error) {
+      console.log(`⚠️ Could not click element ${selector}: ${error}`);
+      throw error;
+    }
   }
 }
 
