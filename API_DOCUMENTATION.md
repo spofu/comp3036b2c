@@ -6,12 +6,18 @@ This document provides comprehensive documentation for all API endpoints in the 
 
 1. [Authentication APIs](#authentication-apis)
 2. [Product APIs](#product-apis)
-3. [Cart APIs](#cart-apis)
-4. [Checkout APIs](#checkout-apis)
-5. [Search APIs](#search-apis)
-6. [Admin APIs](#admin-apis)
-7. [Error Handling](#error-handling)
-8. [Database Schema Overview](#database-schema-overview)
+3. [Categories APIs](#categories-apis)
+4. [Cart APIs](#cart-apis)
+5. [Checkout APIs](#checkout-apis)
+6. [Search APIs](#search-apis)
+7. [Admin APIs](#admin-apis)
+8. [Error Handling](#error-handling)
+9. [Database Schema Overview](#database-schema-overview)
+10. [Rate Limiting & Security](#rate-limiting--security)
+11. [API Testing](#api-testing)
+12. [API Versioning](#api-versioning)
+13. [Performance Notes](#performance-notes)
+14. [Development Environment](#development-environment)
 
 ---
 
@@ -199,6 +205,48 @@ Fetch a single product by ID or slug.
 **Error Responses:**
 - `404`: Product not found
 - `500`: Server error
+
+---
+
+## Categories APIs
+
+### GET /api/categories
+
+Retrieves all product categories available in the system.
+
+**Example Request:**
+```
+GET /api/categories
+```
+
+**Response (200 - Success):**
+```json
+{
+  "categories": [
+    {
+      "id": 1,
+      "name": "Electronics"
+    },
+    {
+      "id": 2,
+      "name": "Clothing"
+    },
+    {
+      "id": 3,
+      "name": "Books"
+    }
+  ]
+}
+```
+
+**Response Details:**
+- Categories are returned in alphabetical order by name
+- Each category includes minimal fields (id and name)
+- Used primarily for filtering products and navigation
+
+**Status Codes:**
+- `200 OK`: Categories retrieved successfully
+- `500 Internal Server Error`: Failed to fetch categories
 
 ---
 
@@ -584,6 +632,45 @@ Get user's order history.
 
 ---
 
+### PATCH /api/checkout/orders
+
+Update order status (for admin or customer use).
+
+**Request Body:**
+```json
+{
+  "orderId": "order_123",
+  "status": "SHIPPED",
+  "userId": "user_123"
+}
+```
+
+**Valid Status Values:**
+- `PENDING`: Order created but not yet processed
+- `PAID`: Payment confirmed
+- `SHIPPED`: Order dispatched
+- `DELIVERED`: Order delivered to customer
+- `CANCELLED`: Order cancelled
+
+**Response (200 - Success):**
+```json
+{
+  "success": true,
+  "order": {
+    "id": "order_123",
+    "status": "SHIPPED",
+    "updatedAt": "2025-06-08T10:00:00.000Z"
+  }
+}
+```
+
+**Error Responses:**
+- `400`: Invalid status or missing required fields
+- `404`: Order not found
+- `500`: Server error
+
+---
+
 ## Search APIs
 
 ### GET /api/search
@@ -671,9 +758,52 @@ Get dashboard statistics for admin panel.
 
 ### GET /api/admin/products
 
-Get all products for admin management.
+Get all products for admin management with additional fields.
 
-**Response:** Similar to `/api/products` but includes additional admin fields.
+**Query Parameters:**
+- `limit` (optional): Limit number of results
+- `category` (optional): Filter by category
+
+**Response (200 - Success):**
+```json
+{
+  "products": [
+    {
+      "id": "1",
+      "name": "Premium T-Shirt",
+      "price": 29.99,
+      "stock": 15,
+      "imageUrl": "/images/products/product-1.jpg",
+      "description": "High-quality cotton t-shirt",
+      "category": {
+        "id": "cat_1",
+        "name": "Clothing"
+      },
+      "slug": "premium-t-shirt",
+      "variants": [
+        {
+          "id": "var_1",
+          "size": "M",
+          "color": "Red",
+          "stock": 5,
+          "price": 29.99
+        }
+      ],
+      "images": [
+        {
+          "id": "img_1",
+          "imageData": "base64_encoded_image",
+          "fileName": "product-1.jpg",
+          "isPrimary": true,
+          "altText": "Premium T-Shirt Front View"
+        }
+      ],
+      "createdAt": "2025-06-01T10:00:00.000Z",
+      "updatedAt": "2025-06-08T10:00:00.000Z"
+    }
+  ]
+}
+```
 
 ---
 
@@ -681,17 +811,218 @@ Get all products for admin management.
 
 Create a new product (Admin only).
 
+**Request Body:**
+```json
+{
+  "name": "New Product",
+  "description": "Product description",
+  "price": 49.99,
+  "stock": 25,
+  "categoryId": "cat_1",
+  "slug": "new-product"
+}
+```
+
+**Response (201 - Success):**
+```json
+{
+  "message": "Product created successfully",
+  "product": {
+    "id": "new_product_id",
+    "name": "New Product",
+    "price": 49.99,
+    "stock": 25,
+    "categoryId": "cat_1",
+    "slug": "new-product",
+    "createdAt": "2025-06-08T10:00:00.000Z"
+  }
+}
+```
+
 ---
 
-### PUT /api/admin/products/[id]
+### GET /api/admin/products/[id]
+
+Get a specific product with variants and images for admin management.
+
+**Parameters:**
+- `id`: Product ID
+
+**Response (200 - Success):**
+```json
+{
+  "id": "1",
+  "name": "Premium T-Shirt",
+  "description": "High-quality cotton t-shirt",
+  "price": 29.99,
+  "stock": 15,
+  "imageUrl": "/images/products/product-1.jpg",
+  "categoryId": "cat_1",
+  "slug": "premium-t-shirt",
+  "category": {
+    "id": "cat_1",
+    "name": "Clothing"
+  },
+  "variants": [
+    {
+      "id": "var_1",
+      "size": "M",
+      "color": "Red",
+      "material": "Cotton",
+      "stock": 5,
+      "price": 29.99,
+      "sku": "TSHIRT-M-RED"
+    }
+  ],
+  "images": [
+    {
+      "id": "img_1",
+      "imageData": "base64_encoded_image",
+      "fileName": "product-1.jpg",
+      "fileSize": 102400,
+      "mimeType": "image/jpeg",
+      "isPrimary": true,
+      "altText": "Premium T-Shirt Front View"
+    }
+  ]
+}
+```
+
+---
+
+### PATCH /api/admin/products/[id]
 
 Update product details (Admin only).
 
+**Request Body:**
+```json
+{
+  "name": "Updated Product Name",
+  "description": "Updated description",
+  "price": 35.99,
+  "stock": 20,
+  "categoryId": "cat_1"
+}
+```
+
+**Response (200 - Success):**
+```json
+{
+  "message": "Product updated successfully",
+  "product": {
+    "id": "1",
+    "name": "Updated Product Name",
+    "price": 35.99,
+    "stock": 20,
+    "updatedAt": "2025-06-08T10:00:00.000Z"
+  }
+}
+```
+
 ---
 
-### DELETE /api/admin/products/[id]
+### POST /api/admin/products/[id]/variants
 
-Delete a product (Admin only).
+Create a new product variant (Admin only).
+
+**Request Body:**
+```json
+{
+  "size": "L",
+  "color": "Blue",
+  "material": "Cotton",
+  "price": 31.99,
+  "stock": 10,
+  "sku": "TSHIRT-L-BLUE"
+}
+```
+
+**Response (201 - Success):**
+```json
+{
+  "message": "Variant created successfully",
+  "variant": {
+    "id": "new_variant_id",
+    "productId": "1",
+    "size": "L",
+    "color": "Blue",
+    "material": "Cotton",
+    "price": 31.99,
+    "stock": 10,
+    "sku": "TSHIRT-L-BLUE"
+  }
+}
+```
+
+---
+
+### PUT /api/admin/products/[id]/variants/[variantId]
+
+Update a product variant (Admin only).
+
+**Request Body:**
+```json
+{
+  "size": "L",
+  "color": "Navy Blue",
+  "price": 32.99,
+  "stock": 15
+}
+```
+
+**Response (200 - Success):**
+```json
+{
+  "message": "Variant updated successfully",
+  "variant": {
+    "id": "variant_id",
+    "size": "L",
+    "color": "Navy Blue",
+    "price": 32.99,
+    "stock": 15,
+    "updatedAt": "2025-06-08T10:00:00.000Z"
+  }
+}
+```
+
+---
+
+### DELETE /api/admin/products/[id]/variants/[variantId]
+
+Delete a product variant (Admin only).
+
+**Response (200 - Success):**
+```json
+{
+  "message": "Variant deleted successfully",
+  "variantId": "variant_id"
+}
+```
+
+---
+
+### PATCH /api/admin/products
+
+Update product stock (Admin only).
+
+**Request Body:**
+```json
+{
+  "id": "product_id",
+  "stock": 50
+}
+```
+
+**Response (200 - Success):**
+```json
+{
+  "success": true,
+  "product": {
+    "id": "product_id",
+    "stock": 50
+  }
+}
+```
 
 ---
 
@@ -821,7 +1152,19 @@ Get all orders for admin management.
    - `quantity`: Item quantity
    - `price`: Price at time of order
 
-7. **Address**
+7. **ProductImage**
+   - `id`: Primary key
+   - `productId`: Foreign key to Product
+   - `imageData`: Base64 encoded image data
+   - `fileName`: Original file name
+   - `fileSize`: File size in bytes
+   - `mimeType`: Image MIME type (e.g., 'image/jpeg')
+   - `isPrimary`: Boolean indicating primary product image
+   - `altText`: Alternative text for accessibility
+   - `createdAt`: Image upload timestamp
+   - `updatedAt`: Last modification timestamp
+
+8. **Address**
    - `id`: Primary key
    - `userId`: Foreign key to User
    - `street`: Street address
@@ -895,4 +1238,55 @@ For development and testing, ensure your local environment has:
 - Prisma migrations applied
 - Seed data loaded
 
-Last updated: June 7, 2025
+## API Versioning
+
+This API follows semantic versioning principles. Current version: v1.0
+
+### Version History
+- **v1.0** (June 2025): Initial release with full e-commerce functionality
+- **v1.1** (June 2025): Added product image management and variant support
+
+## Performance Notes
+
+### Caching Strategy
+- Product data is cached for improved performance
+- Cart operations are optimized for real-time updates
+- Image loading is optimized with Next.js Image component
+
+### Pagination
+For endpoints returning large datasets, pagination is implemented:
+- Default page size: 20 items
+- Maximum page size: 100 items
+- Use `page` and `limit` query parameters
+
+### Rate Limiting
+- Authentication endpoints: 5 requests per minute per IP
+- General API endpoints: 100 requests per minute per user
+- Admin endpoints: 200 requests per minute per admin user
+
+## Development Environment
+
+### Required Environment Variables
+```env
+# Database
+DATABASE_URL="postgresql://username:password@localhost:5432/comp3036b2c"
+
+# Authentication
+JWT_SECRET="your-super-secret-jwt-key-change-this-in-production"
+
+# Optional
+NODE_ENV="development"
+NEXTAUTH_URL="http://localhost:3000"
+```
+
+### Database Migrations
+The application includes the following migrations:
+- `20250526091037_init`: Initial database schema
+- `20250526122450_edit_product`: Product table modifications
+- `20250527055825_add_cart_table`: Shopping cart functionality
+- `20250605061954_add_product_slug`: SEO-friendly URLs
+- `20250607131755_add_unique_constraints`: Data integrity
+- `20250608123038_add_product_images_table`: Image management
+- `20250608123412_add_product_images_make_imageurl_optional`: Image flexibility
+
+Last updated: June 8, 2025

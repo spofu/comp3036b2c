@@ -12,7 +12,7 @@ interface Product {
     name: string;
   };
   description: string;
-  imageUrl: string;
+  image: string; // Updated from imageUrl to image to match API response
   stock: number;
 }
 
@@ -49,26 +49,6 @@ export default function ProductManagement() {
     }
   };
 
-  const deleteProduct = async (productId: string) => {
-    if (!confirm('Are you sure you want to delete this product?')) return;
-
-    try {
-      const response = await fetch('/api/admin/products', {
-        method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: productId })
-      });
-      
-      if (response.ok) {
-        setProducts(prev => prev.filter(p => p.id !== productId));
-      } else {
-        alert('Failed to delete product');
-      }
-    } catch (error) {
-      console.error('Error deleting product:', error);
-      alert('Error deleting product');
-    }
-  };
 
   if (isLoading || loading) {
     return <div className="text-center py-8">Loading products...</div>;
@@ -96,9 +76,6 @@ export default function ProductManagement() {
                   Price
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Stock
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Actions
                 </th>
               </tr>
@@ -107,41 +84,26 @@ export default function ProductManagement() {
               {products.map((product) => (
                 <tr key={product.id}>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="flex items-center">
-                      <img 
-                        src={product.imageUrl || '/images/products/default.jpg'} 
+                    <div className="flex items-center">                      <img 
+                        src={product.image || '/images/products/default.jpg'} 
                         alt={product.name}
                         className="h-10 w-10 rounded object-cover mr-4"
                       />
                       <div>
                         <div className="text-sm font-medium text-gray-900">{product.name}</div>
-                        <div className="text-sm text-gray-500">{product.category.name}</div>
-                      </div>
+                        <div className="text-sm text-gray-500">{product.category.name}</div>                      </div>
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                     ${product.price}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    <span className={product.stock < 10 ? 'text-red-600 font-medium' : ''}>
-                      {product.stock}
-                    </span>
-                  </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                    <div className="flex space-x-2">
-                      <button 
-                        onClick={() => router.push(`/admin/products/${product.id}`)}
-                        className="text-blue-600 hover:text-blue-900"
-                      >
-                        Edit
-                      </button>
-                      <button
-                        onClick={() => deleteProduct(product.id)}
-                        className="text-red-600 hover:text-red-900"
-                      >
-                        Delete
-                      </button>
-                    </div>
+                    <button 
+                      onClick={() => router.push(`/admin/products/${product.id}`)}
+                      className="text-blue-600 hover:text-blue-900 bg-blue-50 hover:bg-blue-100 px-3 py-1 rounded-md transition-colors"
+                    >
+                      Edit Product
+                    </button>
                   </td>
                 </tr>
               ))}

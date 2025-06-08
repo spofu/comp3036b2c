@@ -24,6 +24,12 @@ export async function GET(
         category: true,
         variants: {
           orderBy: [{ size: 'asc' }, { color: 'asc' }]
+        },
+        images: {
+          orderBy: [
+            { isPrimary: 'desc' },
+            { createdAt: 'asc' }
+          ]
         }
       }
     })
@@ -39,7 +45,7 @@ export async function GET(
   }
 }
 
-// PATCH /api/admin/products/[id] - Update product stock
+// PATCH /api/admin/products/[id] - Update product details
 export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -54,19 +60,45 @@ export async function PATCH(
     const { id } = await params
 
     const body = await request.json()
-    const { stock } = body
+    const { name, description, price, stock, imageUrl, categoryId } = body
 
-    if (typeof stock !== 'number' || stock < 0) {
-      return NextResponse.json({ error: 'Invalid stock value' }, { status: 400 })
+    // Build update data object with only provided fields
+    const updateData: any = {}
+    
+    if (name !== undefined) updateData.name = name
+    if (description !== undefined) updateData.description = description
+    if (price !== undefined) {
+      const numPrice = parseFloat(price)
+      if (isNaN(numPrice) || numPrice < 0) {
+        return NextResponse.json({ error: 'Invalid price value' }, { status: 400 })
+      }
+      updateData.price = numPrice
+    }
+    if (stock !== undefined) {
+      const numStock = parseInt(stock)
+      if (isNaN(numStock) || numStock < 0) {
+        return NextResponse.json({ error: 'Invalid stock value' }, { status: 400 })
+      }
+      updateData.stock = numStock
+    }
+    if (imageUrl !== undefined) updateData.imageUrl = imageUrl
+    if (categoryId !== undefined) updateData.categoryId = categoryId
+
+    // Generate slug if name is being updated
+    if (name) {
+      updateData.slug = name.toLowerCase()
+        .replace(/[^a-z0-9 -]/g, '')
+        .replace(/\s+/g, '-')
+        .replace(/-+/g, '-')
+        .trim('-')
     }
 
     const updatedProduct = await prisma.product.update({
       where: { id },
-      data: { stock },
+      data: updateData,
       include: {
         category: true,
-        variants: {
-          orderBy: [{ size: 'asc' }, { color: 'asc' }]
+        variants: {        orderBy: [{ size: 'asc' }, { color: 'asc' }]
         }
       }
     })
@@ -74,6 +106,9 @@ export async function PATCH(
     return NextResponse.json(updatedProduct)
   } catch (error) {
     console.error('Error updating product:', error)
+    if (error && typeof error === 'object' && 'code' in error && error.code === 'P2002') {
+      return NextResponse.json({ error: 'Product name or slug already exists' }, { status: 400 })
+    }
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

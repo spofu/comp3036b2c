@@ -29,7 +29,7 @@ model Product {
   description String
   price       Decimal          @db.Decimal(10, 2)
   stock       Int              @default(0)
-  imageUrl    String
+  imageUrl    String?          // Made optional for migration
   createdAt   DateTime         @default(now())
   updatedAt   DateTime         @updatedAt
   categoryId  String
@@ -39,9 +39,27 @@ model Product {
   category    Category         @relation(fields: [categoryId], references: [id])
   variants    ProductVariant[]
   reviews     Review[]
+  images      ProductImage[]
 
   @@index([categoryId])
   @@index([slug])
+}
+
+model ProductImage {
+  id          String   @id @default(uuid())
+  productId   String
+  imageData   String   @db.Text // Base64 encoded image data
+  fileName    String
+  fileSize    Int
+  mimeType    String
+  isPrimary   Boolean  @default(false)
+  altText     String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  product     Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@index([productId])
+  @@index([isPrimary])
 }
 
 model ProductVariant {

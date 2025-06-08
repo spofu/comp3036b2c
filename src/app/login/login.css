@@ -853,42 +853,56 @@
   }
 }
 
-/* Dark mode support */
-@media (prefers-color-scheme: dark) {
-  :root {
-    --gray-50: #1f2937;
-    --gray-100: #374151;
-    --gray-200: #4b5563;
-    --gray-300: #6b7280;
-    --gray-400: #9ca3af;
-    --gray-500: #d1d5db;
-    --gray-600: #e5e7eb;
-    --gray-900: #f9fafb;
-  }
+/* Force light mode - white background with black text */
+.login-container {
+  background: #ffffff !important; /* Force white background */
+}
 
+.login-card,
+.order-card,
+.user-details,
+.order-item {
+  background-color: #ffffff !important; /* Force white background */
+  color: #000000 !important; /* Force black text */
+}
+
+.form-input {
+  background-color: #ffffff !important; /* Force white input background */
+  color: #000000 !important; /* Force black input text */
+}
+
+.login-title,
+.login-subtitle,
+.form-label,
+h2, h3, h4,
+.order-info h3,
+.item-name,
+.user-details p,
+.order-meta p,
+.order-address p {
+  color: #000000 !important; /* Force black text */
+}
+
+/* Dark mode support - disabled to maintain white background */
+@media (prefers-color-scheme: dark) {
   .login-container {
-    background: linear-gradient(135deg, #111827 0%, #1f2937 100%);
+    background: #ffffff !important; /* Keep white background even in dark mode */
   }
 
   .login-card,
   .order-card {
-    background-color: #1f2937;
-    border-color: #374151;
+    background-color: #ffffff !important;
+    color: #000000 !important;
   }
 
   .user-details,
   .order-item {
-    background-color: #374151;
-    border-color: #4b5563;
+    background-color: #ffffff !important;
+    color: #000000 !important;
   }
 
   .form-input {
-    background-color: #374151;
-    border-color: #4b5563;
-    color: #f9fafb;
-  }
-
-  .form-input:focus {
-    border-color: var(--primary-600);
+    background-color: #ffffff !important;
+    color: #000000 !important;
   }
 }

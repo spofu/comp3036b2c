@@ -58,6 +58,7 @@ export default function ProductEditPage() {
   const router = useRouter()
   const params = useParams()
   const { user, isLoading } = useAuth()
+  
   const [product, setProduct] = useState<Product | null>(null)
   const [categories, setCategories] = useState<Category[]>([])
   const [loadingProduct, setLoadingProduct] = useState(true)
@@ -98,6 +99,7 @@ export default function ProductEditPage() {
     setSuccessMessage('')
     setTimeout(() => setErrorMessage(''), 5000)
   }
+
   // Helper function to get auth headers
   const getAuthHeaders = () => {
     const token = localStorage.getItem('authToken')
@@ -201,6 +203,7 @@ export default function ProductEditPage() {
       setUploading(false)
     }
   }
+
   const deleteImage = async (imageId: string) => {
     if (!confirm('Are you sure you want to delete this image?')) return
 
@@ -278,7 +281,8 @@ export default function ProductEditPage() {
         headers: {
           'Authorization': `Bearer ${authToken}`,
           'Content-Type': 'application/json',
-        },      })
+        },
+      })
       if (response.ok) {
         const data = await response.json()
         setProduct(data)
@@ -475,6 +479,9 @@ export default function ProductEditPage() {
     )
   }
 
+  // Get primary image or first image
+  const primaryImage = productImages.find(img => img.isPrimary) || productImages[0]
+
   return (
     <div className="admin-edit-container">
       <div className="admin-edit-header">
@@ -557,7 +564,7 @@ export default function ProductEditPage() {
             </div>
 
             <div className="edit-form-group">
-              <label className="edit-form-label">Image URL</label>
+              <label className="edit-form-label">Legacy Image URL</label>
               <input
                 type="url"
                 value={editForm.imageUrl}
@@ -565,6 +572,7 @@ export default function ProductEditPage() {
                 className="edit-form-input"
                 placeholder="https://example.com/image.jpg"
               />
+              <p className="text-sm text-gray-600 mt-1">Note: Use the image upload section below for better image management</p>
             </div>
 
             <div className="edit-form-group">
@@ -602,7 +610,23 @@ export default function ProductEditPage() {
           </div>
         ) : (
           <div className="product-info-grid">
-            <img src={product.imageUrl} alt={product.name} className="product-image" />
+            <div className="product-image-container">
+              {primaryImage ? (
+                <img 
+                  src={primaryImage.imageData} 
+                  alt={primaryImage.altText || product.name} 
+                  className="product-image" 
+                />
+              ) : product.imageUrl ? (
+                <img 
+                  src={product.imageUrl} 
+                  alt={product.name} 
+                  className="product-image" 
+                />
+              ) : (
+                <div className="product-image-placeholder">No Image</div>
+              )}
+            </div>
             <div className="product-details">
               <div className="product-detail-item">
                 <span className="product-detail-label">Name:</span>
@@ -646,9 +670,9 @@ export default function ProductEditPage() {
         <h2 className="section-title">Product Images</h2>
         
         {/* Image Upload */}
-        <div className="image-upload-container">
-          <h3 className="upload-title">Upload New Images</h3>
-          <div className="upload-area">
+        <div className="image-upload-section">
+          <h3 className="subsection-title">Upload New Images</h3>
+          <div className="image-upload-form">
             <input
               type="file"
               multiple
@@ -657,87 +681,73 @@ export default function ProductEditPage() {
               className="file-input"
               id="image-upload"
             />
-            <label htmlFor="image-upload" className="upload-label">
-              <div className="upload-content">
-                <span className="upload-icon">📷</span>
-                <span className="upload-text">
-                  {selectedFiles.length > 0 
-                    ? `${selectedFiles.length} file(s) selected` 
-                    : 'Click to select images or drag and drop'
-                  }
-                </span>
-                <span className="upload-hint">Max 5MB per image, JPG/PNG only</span>
-              </div>
+            <label htmlFor="image-upload" className="file-input-label">
+              Choose Images (Max 5MB each)
             </label>
-          </div>
-            {/* Preview of selected files */}
-          {previewUrls.length > 0 && (
-            <div className="preview-container">
-              <h4 className="preview-title">Preview</h4>
-              <div className="preview-grid">
-                {previewUrls.map((url, index) => (
-                  <div key={`preview-${selectedFiles[index]?.name}-${index}`} className="preview-item">
-                    <img src={url} alt={`Preview ${index + 1}`} className="preview-image" />
-                    <span className="preview-filename">{selectedFiles[index]?.name}</span>
-                  </div>
-                ))}
-              </div>
-              <div className="upload-actions">
-                <button 
+            
+            {selectedFiles.length > 0 && (
+              <div className="selected-files-info">
+                <p>{selectedFiles.length} file(s) selected</p>
+                <button
                   onClick={uploadImages}
-                  className="upload-button"
                   disabled={uploading}
+                  className="upload-button"
                 >
                   {uploading ? 'Uploading...' : 'Upload Images'}
                 </button>
-                <button 
-                  onClick={() => {
-                    setSelectedFiles([])
-                    setPreviewUrls([])
-                  }}
-                  className="cancel-upload-button"
-                  disabled={uploading}
-                >
-                  Cancel
-                </button>
+              </div>
+            )}
+          </div>
+
+          {/* Image Previews */}
+          {previewUrls.length > 0 && (
+            <div className="image-previews">
+              <h4>Preview:</h4>
+              <div className="preview-grid">
+                {previewUrls.map((url, index) => (
+                  <div key={index} className="preview-item">
+                    <img src={url} alt={`Preview ${index + 1}`} className="preview-image" />
+                    <p className="preview-filename">{selectedFiles[index]?.name}</p>
+                  </div>
+                ))}
               </div>
             </div>
           )}
         </div>
 
-        {/* Existing Images */}
-        <div className="existing-images">
-          <h3 className="existing-title">Current Images</h3>
+        {/* Current Images */}
+        <div className="current-images-section">
+          <h3 className="subsection-title">Current Images ({productImages.length})</h3>
           {productImages.length > 0 ? (
             <div className="images-grid">
               {productImages.map((image) => (
                 <div key={image.id} className="image-item">
                   <div className="image-container">
-                    <img 
-                      src={image.imageData} 
-                      alt={image.altText || product.name}
+                    <img
+                      src={image.imageData}
+                      alt={image.altText || image.fileName}
                       className="product-image-thumb"
                     />
                     {image.isPrimary && (
-                      <span className="primary-badge">Primary</span>
+                      <div className="primary-badge">Primary</div>
                     )}
                   </div>
                   <div className="image-info">
-                    <span className="image-filename">{image.fileName}</span>
-                    <span className="image-size">{(image.fileSize / 1024).toFixed(1)} KB</span>
+                    <p className="image-filename">{image.fileName}</p>
+                    <p className="image-size">{(image.fileSize / 1024).toFixed(1)} KB</p>
                   </div>
                   <div className="image-actions">
                     {!image.isPrimary && (
                       <button
                         onClick={() => setPrimaryImage(image.id)}
-                        className="primary-button"
+                        className="small-button primary-button"
                       >
                         Set Primary
                       </button>
                     )}
                     <button
                       onClick={() => deleteImage(image.id)}
-                      className="delete-image-button"
+                      className="small-button delete-button"
                     >
                       Delete
                     </button>
@@ -746,8 +756,8 @@ export default function ProductEditPage() {
               ))}
             </div>
           ) : (
-            <div className="no-images">
-              <p>No images uploaded yet. Upload some images to display your product.</p>
+            <div className="no-images-message">
+              No images uploaded yet. Upload some images to get started!
             </div>
           )}
         </div>
@@ -835,9 +845,11 @@ export default function ProductEditPage() {
           >
             {updating ? 'Adding...' : 'Add Variant'}
           </button>
-        </div>        <div className="variant-list">
-          {product.variants.map((variant, index) => (
-            <div key={variant.id || `variant-${index}`} className="variant-item">
+        </div>
+
+        <div className="variant-list">
+          {product.variants.map(variant => (
+            <div key={variant.id} className="variant-item">
               <div className="variant-header">
                 <div className="variant-info">
                   {variant.sku && <span className="variant-sku">SKU: {variant.sku}</span>}
@@ -870,7 +882,8 @@ export default function ProductEditPage() {
                 </button>
               </div>
             </div>
-          ))}          {product.variants.length === 0 && (
+          ))}
+          {product.variants.length === 0 && (
             <div className="text-gray-500 text-center py-4">No variants added yet</div>
           )}
         </div>

@@ -141,6 +141,14 @@ export async function PUT(
   }
 }
 
+// PATCH /api/admin/products/[id]/variants/[variantId] - Update variant (alias for PUT)
+export async function PATCH(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string; variantId: string }> }
+) {
+  return PUT(request, { params })
+}
+
 // DELETE /api/admin/products/[id]/variants/[variantId] - Delete variant
 export async function DELETE(
   request: NextRequest,

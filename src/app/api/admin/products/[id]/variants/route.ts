@@ -66,11 +66,11 @@ export async function POST(
 
     const { id } = await params
     const body = await request.json()
-    const { size, color, material, sku, price, stock = 0, imageUrl } = body
-
-    // Validate required fields
-    if (!size && !color) {
-      return NextResponse.json({ error: 'Either size or color is required' }, { status: 400 })
+    const { size, color, material, sku, price, stock = 0, imageUrl } = body    // Validate required fields - at least one variant attribute is required
+    if (!size && !color && !material) {
+      return NextResponse.json({ 
+        error: 'At least one variant attribute (size, color, or material) is required' 
+      }, { status: 400 })
     }
 
     if (typeof stock !== 'number' || stock < 0) {
