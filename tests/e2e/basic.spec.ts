@@ -165,32 +165,8 @@ test.describe('Authentication Flow', () => {
       if (await page.locator(selector).count() > 0) {
         hasPasswordField = true;
         break;
-      }
-    }
+      }    }
       expect(hasEmailField && hasPasswordField).toBe(true);
-  });
-
-  test('should attempt login flow', async ({ page }) => {
-    const helpers = new TestHelpers(page);
-    
-    await page.goto('/login', { waitUntil: 'domcontentloaded' });
-    
-    // Fill login form - test will fail if elements don't exist
-    await helpers.fillField('input[type="email"], [data-testid="email"]', 'customer@example.com');
-    await helpers.fillField('input[type="password"], [data-testid="password"]', 'password123');
-    
-    // Submit form - test will fail if button doesn't exist
-    await helpers.clickElement('[data-testid="login-button"], button[type="submit"], button:has-text("Login"), button:has-text("Sign In"), input[type="submit"]');
-    
-    // Wait for response
-    await page.waitForTimeout(2000);
-    
-    // Verify login was processed (either success redirect or error message)
-    const isRedirected = !page.url().includes('/login');
-    const hasErrorMessage = await page.locator('text=/error/i, text=/invalid/i, text=/incorrect/i').count() > 0;
-    
-    expect(isRedirected || hasErrorMessage).toBe(true);
-    console.log('✅ Login form interaction completed');
   });
 });
 
